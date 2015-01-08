@@ -14,6 +14,15 @@ let rec infertype (m:(string*tip) list) : expr -> tip = function
   | Int (n,_) -> TInt
   | Bool (b,_) -> TBool
   | Float (f,_) -> TFloat
+  | Pair (e1,e2,_) 
+    -> (match (infertype m e1, infertype m e2) with
+      | (t1,t2) -> TPair(t1,t2) )
+  | Fst (p,_) 
+    -> ( match (infertype m p) with
+      | TPair(t1,t2) -> t1)
+  | Snd (p,_)
+    -> ( match (infertype m p) with
+      | TPair(t1,t2) -> t2)  
   | Op(e1,Plus,e2,_) 
   | Op(e1,Minus,e2,_) 
   | Op(e1,Mul,e2,_) 

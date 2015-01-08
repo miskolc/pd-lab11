@@ -33,6 +33,7 @@ let parseError loc = raise (Lexer.ParseError loc)
 %token ASGNOP DEREF
 %token PLUS MINUS MUL DIV
 %token LPAREN RPAREN
+%token COMMA
 %token FUN COLON
 %token LET REC IN
 %token REF
@@ -40,6 +41,8 @@ let parseError loc = raise (Lexer.ParseError loc)
 %token ARROW
 %token MATCH WITH INJL INJR PIPE
 %token EOF
+%token FST
+%token SND
 /* Precedence list.  One can think of it like this:  
    Reject a parse tree if two symbols in the list below occur one next to 
    the other in a parse tree but their order is reversed from the order below.
@@ -94,6 +97,7 @@ let parseError loc = raise (Lexer.ParseError loc)
 %left MUL DIV
 %nonassoc INT_CAST FLOAT_CAST
 %left APPX
+%nonassoc FST SND
 %nonassoc DEREF REF      /* highest precedence */
 %start main             /* the entry point/start symbol */
 %type <ImpAST.expr> main  /* the datatype associated to the start symbol */
@@ -115,6 +119,7 @@ tip:
   | TBOOL                      {TBool}
   | TUNIT                      {TUnit}
   | TFLOAT                     {TFloat}
+  | tip MUL tip                { TPair($1, $3) }
   | tip ARROW tip              { TArrow ($1, $3) }
   /* the TArrow type constructor is used to represent 
     functional types of the form a -> b */
@@ -131,6 +136,8 @@ expr:
   | expr MINUS expr             { Op ($1,Minus,$3, location()) }
   | expr MUL expr             { Op ($1,Mul,$3, location()) }
   | expr DIV expr             { Op ($1,Div,$3, location()) }
+  | FST expr                  { Fst ($2,location()) }
+  | SND expr                  { Snd ($2,location()) } 
   | expr ASGNOP expr            { Atrib ($1,$3, location()) }
   | expr LTE expr              { Op ($1, Mic, $3, location()) }
   | expr LT expr              { Op ($1, MicS, $3, location()) }
@@ -195,6 +202,7 @@ funexpr:
   /* having expression between parens here says that one can have any
      expression as argument to a function application if the expression
      is wrapped in parentheses */
+  | LPAREN expr COMMA expr RPAREN { Pair ($2,$4,location())}
   | DEREF expr                 { Deref ($2, location()) }
   | REF expr                   { Ref ($2, location()) }
 ;

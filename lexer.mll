@@ -50,6 +50,8 @@ let _ =
     List.iter (fun (kwd, tok) -> Hashtbl.add keyword_table kwd tok)
     (* insert each keyyword-symbol pair in the list into the hashtable *)
   [
+   ( "fst"          , FST );
+   ( "snd"          , SND );
    ( "fun"          , FUN );
    ( "int"          , TINT );
    ( "bool"         , TBOOL );
@@ -105,6 +107,7 @@ rule token = parse
   | "()"           { SKIP }  (* empty stmt is defined by () to match ocaml *)
   | '('            { LPAREN }
   | ')'            { RPAREN }
+  | ','            { COMMA }  
   | "="            { EQ }
   | ":="           { ASGNOP }
   | ":"            { COLON }

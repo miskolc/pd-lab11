@@ -45,6 +45,7 @@ type tip = TInt
   | TFloat 
   | TBool 
   | TUnit 
+  | TPair of tip * tip
   | TArrow of tip * tip  (** [TArrow] encodes types associated to functions.
                              More precisely, [ TArrow(t1,t2) ] 
                              represents type {i t1 -> t2}.  *)
@@ -58,6 +59,7 @@ let rec string_of_tip = function
   | TFloat -> "float"
   | TBool -> "bool"
   | TUnit -> "unit"
+  | TPair (t1,t2) -> "(" ^ string_of_tip t1 ^ " , " ^ string_of_tip t2 ^ ")"
   | TArrow (t1,t2) -> "(" ^ string_of_tip t1 ^ " -> " ^ string_of_tip t2 ^ ")"
   | TSum (t1,t2) -> "(" ^ string_of_tip t1 ^ " + " ^ string_of_tip t2 ^ ")"
   | TRef t -> string_of_tip t ^ " ref"
@@ -68,6 +70,9 @@ type expr =                                    (** e ::= *)
   | Bool of bool * locatie                         (** | b *)
   | Int of int * locatie                           (** | n *)
   | Float of float * locatie                       (** | f *)
+  | Pair of expr * expr * locatie 
+  | Fst of expr * locatie
+  | Snd of expr * locatie
   | Op of expr * op * expr * locatie               (** | e op e *)
   | Secv of expr * expr * locatie                  (** | e ; e *)
   | Skip of locatie                                (** | ()    *)
@@ -91,7 +96,7 @@ type expr =                                    (** e ::= *)
 
 (** Retrieves the file location component associated to the given expression *)
 let location = function
-  | Int (_,l) | Float (_,l) | Bool (_,l)
+  | Int (_,l) | Float (_,l) | Bool (_,l) | Fst(_,l) | Snd(_,l) | Pair (_,_,l)
   | Loc (_,l) | Ref (_,l) | Deref (_,l) | Atrib (_,_,l)
   | Op (_, _, _,l)
   | If (_, _, _,l) | While (_, _,l) | For (_, _, _, _,l)
@@ -106,9 +111,9 @@ let exps : expr -> expr list  = function
  | IntOfFloat _ | FloatOfInt _ | Bool _ | Int _ | Float _ | Loc _
  | Var _ | Skip _ 
    -> []
- | Ref (e,_) | Deref (e,_) | Fun(_,_,e,_) | InjL (e,_,_) | InjR (e,_,_)
+ | Ref (e,_) | Deref (e,_) | Fst(e,_) | Snd(e,_) | Fun(_,_,e,_) | InjL (e,_,_) | InjR (e,_,_)
    -> [e]
- | Atrib(e1,e2,_) | Op(e1,_,e2,_) | Secv(e1,e2,_) | While(e1,e2,_) 
+ | Atrib(e1,e2,_) | Op(e1,_,e2,_) | Secv(e1,e2,_) | While(e1,e2,_) | Pair(e1,e2,_)
  | App(e1,e2,_) | Let (_,e1,e2,_) | LetRec (_,_,e1,e2,_) 
    -> [e1;e2]
  | If(e1,e2,e3,_) | Match(e1,e2,e3,_)
@@ -126,6 +131,9 @@ let revExps : expr * expr list -> expr = function
    | (e,[]) -> e
    | (Deref(_,loc),[e]) -> Deref(e,loc)
    | (Ref(_,loc),[e]) -> Ref(e,loc)
+   | (Pair(_,_,loc),[e1;e2]) -> Pair(e1,e2,loc)
+   | (Fst(_,loc),[e]) -> Fst(e,loc)
+   | (Snd(_,loc),[e]) -> Snd(e,loc)
    | (Fun(x,t,_,loc),[e]) -> Fun(x,t,e,loc) 
    | (Atrib(_,_,loc),[e1;e2]) -> Atrib(e1,e2,loc)
    | (Op(_,op,_,loc),[e1;e2]) -> Op(e1,op,e2,loc) 
@@ -299,6 +307,9 @@ let rec string_of_expr e =
   | (Int (i,_),_) -> string_of_int i
   | (Float (f,_),_) -> string_of_float f
   | (Bool (b,_),_) -> string_of_bool b
+  | (Pair _,[e1;e2]) -> "(" ^ e1 ^ "," ^ e2 ^ ")"
+  | (Fst _,[e]) -> "fst " ^ e
+  | (Snd _,[e]) -> "snd " ^ e
   | (Loc (l,_),_) -> string_of_l l
   | (Ref _,[s]) -> "ref (" ^ s ^ ")"
   | (Deref _,[s]) -> "! (" ^ s ^ ")"

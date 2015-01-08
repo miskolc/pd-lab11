@@ -7,8 +7,9 @@ let is_fun : expr -> bool = function
   | _ -> false
 
 (** Returns true when the expression is a value *)
-let is_val : expr -> bool = function
+let rec is_val : expr -> bool = function
   | Bool _ | Int _ | Float _ | Loc _ | Skip _ -> true
+  | Pair(v1,v2,_) -> is_val v1 && is_val v2 
   | e -> is_fun e
 
 
@@ -66,6 +67,26 @@ let rec reduce = function
     (match reduce (e1,s) with 
       | Some (e1',s') -> Some (Atrib(e1',e2,loc),s')
       | None -> None)
+  | (Pair(v,e2,loc),s) when is_val v ->
+    (match reduce (e2,s) with
+      | Some(e2',s') -> Some (Pair(v,e2',loc),s')
+      | None -> None)
+  | (Pair(e1,e2,loc),s) ->
+    (match reduce (e1,s) with
+      | Some (e1',s') -> Some (Pair(e1',e2,loc),s')
+      | None -> None)
+  | (Fst(Pair(v1,v2,loc1),loc),s)
+      -> Some(v1,s)    
+  | (Fst(e,loc),s) ->
+    (match reduce (e,s) with
+      | Some (e',s') -> Some (Fst(e',loc),s')
+      | None -> None)
+  | (Snd(Pair(v1,v2,loc1),loc),s)
+      -> Some(v2,s)    
+  | (Snd(e,loc),s) ->
+    (match reduce (e,s) with
+      | Some (e',s') -> Some (Snd(e',loc),s')
+      | None -> None)    
   | (Secv(Skip _,e,_),s) -> Some (e,s)                          (*Secv*)
   | (Secv(e1,e2,loc),s) ->                                      (*SecvS*)
     (match reduce (e1,s) with Some (e1',s') -> Some (Secv(e1',e2,loc),s')
