@@ -1,0 +1,1568 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- This file was created with the aha Ansi HTML Adapter. http://ziz.delphigl.com/tool_aha.php -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="application/xml+xhtml; charset=UTF-8" />
+<title>stdin</title>
+</head>
+<body>
+<pre>
+<span style="color:olive;">014d385</span> Done
+<span style="color:olive;">5b845e6</span> Add Gitignore
+<span style="color:olive;">f24e874</span> First commit
+</pre>
+</body>
+</html>
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<!-- This file was created with the aha Ansi HTML Adapter. http://ziz.delphigl.com/tool_aha.php -->
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="application/xml+xhtml; charset=UTF-8" />
+<title>stdin</title>
+</head>
+<body>
+<pre>
+<span style="color:olive;">commit 014d3859a385b2148606bae0a6753c4f3719f69f</span>
+Author: Dragos Calin &lt;calinho_gx1992@yahoo.com&gt;
+Date:   Thu Jan 8 15:31:59 2015 +0200
+
+    Done
+
+<span style="font-weight:bold;">diff --git a/impAST.ml b/impAST.ml</span>
+<span style="font-weight:bold;">index b754368..104721d 100644</span>
+<span style="font-weight:bold;">--- a/impAST.ml</span>
+<span style="font-weight:bold;">+++ b/impAST.ml</span>
+<span style="color:teal;">@@ -45,6 +45,7 @@</span> type tip = TInt
+  | TFloat 
+  | TBool 
+  | TUnit 
+  <span style="color:green;">| TPair of tip * tip</span>
+  | TArrow of tip * tip  (** [TArrow] encodes types associated to functions.
+                             More precisely, [ TArrow(t1,t2) ] 
+                             represents type {i t1 -&gt; t2}.  *)
+<span style="color:teal;">@@ -58,6 +59,7 @@</span> let rec string_of_tip = function
+  | TFloat -&gt; &quot;float&quot;
+  | TBool -&gt; &quot;bool&quot;
+  | TUnit -&gt; &quot;unit&quot;
+  <span style="color:green;">| TPair (t1,t2) -&gt; &quot;(&quot; ^ string_of_tip t1 ^ &quot; , &quot; ^ string_of_tip t2 ^ &quot;)&quot;</span>
+  | TArrow (t1,t2) -&gt; &quot;(&quot; ^ string_of_tip t1 ^ &quot; -&gt; &quot; ^ string_of_tip t2 ^ &quot;)&quot;
+  | TSum (t1,t2) -&gt; &quot;(&quot; ^ string_of_tip t1 ^ &quot; + &quot; ^ string_of_tip t2 ^ &quot;)&quot;
+  | TRef t -&gt; string_of_tip t ^ &quot; ref&quot;
+<span style="color:teal;">@@ -68,6 +70,9 @@</span> type expr =                                    (** e ::= *)
+  | Bool of bool * locatie                         (** | b *)
+  | Int of int * locatie                           (** | n *)
+  | Float of float * locatie                       (** | f *)
+  <span style="color:green;">| Pair of expr * expr * locatie </span>
+<span style="color:green;">  | Fst of expr * locatie</span>
+<span style="color:green;">  | Snd of expr * locatie</span>
+  | Op of expr * op * expr * locatie               (** | e op e *)
+  | Secv of expr * expr * locatie                  (** | e ; e *)
+  | Skip of locatie                                (** | ()    *)
+<span style="color:teal;">@@ -91,7 +96,7 @@</span> type expr =                                    (** e ::= *)
+
+(** Retrieves the file location component associated to the given expression *)
+let location = function
+  | Int (_,l) | Float (_,l) | Bool (_,l) <span style="color:green;">| Fst(_,l) | Snd(_,l) | Pair (_,_,l)</span>
+  | Loc (_,l) | Ref (_,l) | Deref (_,l) | Atrib (_,_,l)
+  | Op (_, _, _,l)
+  | If (_, _, _,l) | While (_, _,l) | For (_, _, _, _,l)
+<span style="color:teal;">@@ -106,9 +111,9 @@</span> let exps : expr -&gt; expr list  = function
+ | IntOfFloat _ | FloatOfInt _ | Bool _ | Int _ | Float _ | Loc _
+ | Var _ | Skip _ 
+   -&gt; []
+ | Ref (e,_) | Deref (e,_) | <span style="color:green;">Fst(e,_) | Snd(e,_) |</span> Fun(_,_,e,_) | InjL (e,_,_) | InjR (e,_,_)
+   -&gt; [e]
+ | Atrib(e1,e2,_) | Op(e1,_,e2,_) | Secv(e1,e2,_) | While(e1,e2,_) <span style="color:green;">| Pair(e1,e2,_)</span>
+ | App(e1,e2,_) | Let (_,e1,e2,_) | LetRec (_,_,e1,e2,_) 
+   -&gt; [e1;e2]
+ | If(e1,e2,e3,_) | Match(e1,e2,e3,_)
+<span style="color:teal;">@@ -126,6 +131,9 @@</span> let revExps : expr * expr list -&gt; expr = function
+   | (e,[]) -&gt; e
+   | (Deref(_,loc),[e]) -&gt; Deref(e,loc)
+   | (Ref(_,loc),[e]) -&gt; Ref(e,loc)
+   <span style="color:green;">| (Pair(_,_,loc),[e1;e2]) -&gt; Pair(e1,e2,loc)</span>
+<span style="color:green;">   | (Fst(_,loc),[e]) -&gt; Fst(e,loc)</span>
+<span style="color:green;">   | (Snd(_,loc),[e]) -&gt; Snd(e,loc)</span>
+   | (Fun(x,t,_,loc),[e]) -&gt; Fun(x,t,e,loc) 
+   | (Atrib(_,_,loc),[e1;e2]) -&gt; Atrib(e1,e2,loc)
+   | (Op(_,op,_,loc),[e1;e2]) -&gt; Op(e1,op,e2,loc) 
+<span style="color:teal;">@@ -299,6 +307,9 @@</span> let rec string_of_expr e =
+  | (Int (i,_),_) -&gt; string_of_int i
+  | (Float (f,_),_) -&gt; string_of_float f
+  | (Bool (b,_),_) -&gt; string_of_bool b
+  <span style="color:green;">| (Pair _,[e1;e2]) -&gt; &quot;(&quot; ^ e1 ^ &quot;,&quot; ^ e2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | (Fst _,[e]) -&gt; &quot;fst &quot; ^ e</span>
+<span style="color:green;">  | (Snd _,[e]) -&gt; &quot;snd &quot; ^ e</span>
+  | (Loc (l,_),_) -&gt; string_of_l l
+  | (Ref _,[s]) -&gt; &quot;ref (&quot; ^ s ^ &quot;)&quot;
+  | (Deref _,[s]) -&gt; &quot;! (&quot; ^ s ^ &quot;)&quot;
+<span style="font-weight:bold;">diff --git a/lexer.mll b/lexer.mll</span>
+<span style="font-weight:bold;">index ef1eae5..2633aad 100644</span>
+<span style="font-weight:bold;">--- a/lexer.mll</span>
+<span style="font-weight:bold;">+++ b/lexer.mll</span>
+<span style="color:teal;">@@ -50,6 +50,8 @@</span> let _ =
+    List.iter (fun (kwd, tok) -&gt; Hashtbl.add keyword_table kwd tok)
+    (* insert each keyyword-symbol pair in the list into the hashtable *)
+  [
+   <span style="color:green;">( &quot;fst&quot;          , FST );</span>
+<span style="color:green;">   ( &quot;snd&quot;          , SND );</span>
+   ( &quot;fun&quot;          , FUN );
+   ( &quot;int&quot;          , TINT );
+   ( &quot;bool&quot;         , TBOOL );
+<span style="color:teal;">@@ -105,6 +107,7 @@</span> rule token = parse
+  | &quot;()&quot;           { SKIP }  (* empty stmt is defined by () to match ocaml *)
+  | '('            { LPAREN }
+  | ')'            { RPAREN }
+  <span style="color:green;">| ','            { COMMA }</span>  
+  | &quot;=&quot;            { EQ }
+  | &quot;:=&quot;           { ASGNOP }
+  | &quot;:&quot;            { COLON }
+<span style="font-weight:bold;">diff --git a/parser.mly b/parser.mly</span>
+<span style="font-weight:bold;">index 0336801..b0dda2a 100644</span>
+<span style="font-weight:bold;">--- a/parser.mly</span>
+<span style="font-weight:bold;">+++ b/parser.mly</span>
+<span style="color:teal;">@@ -33,6 +33,7 @@</span> let parseError loc = raise (Lexer.ParseError loc)
+%token ASGNOP DEREF
+%token PLUS MINUS MUL DIV
+%token LPAREN RPAREN
+<span style="color:green;">%token COMMA</span>
+%token FUN COLON
+%token LET REC IN
+%token REF
+<span style="color:teal;">@@ -40,6 +41,8 @@</span> let parseError loc = raise (Lexer.ParseError loc)
+%token ARROW
+%token MATCH WITH INJL INJR PIPE
+%token EOF
+<span style="color:green;">%token FST</span>
+<span style="color:green;">%token SND</span>
+/* Precedence list.  One can think of it like this:  
+   Reject a parse tree if two symbols in the list below occur one next to 
+   the other in a parse tree but their order is reversed from the order below.
+<span style="color:teal;">@@ -94,6 +97,7 @@</span> let parseError loc = raise (Lexer.ParseError loc)
+%left MUL DIV
+%nonassoc INT_CAST FLOAT_CAST
+%left APPX
+<span style="color:green;">%nonassoc FST SND</span>
+%nonassoc DEREF REF      /* highest precedence */
+%start main             /* the entry point/start symbol */
+%type &lt;ImpAST.expr&gt; main  /* the datatype associated to the start symbol */
+<span style="color:teal;">@@ -115,6 +119,7 @@</span> tip:
+  | TBOOL                      {TBool}
+  | TUNIT                      {TUnit}
+  | TFLOAT                     {TFloat}
+  <span style="color:green;">| tip MUL tip                { TPair($1, $3) }</span>
+  | tip ARROW tip              { TArrow ($1, $3) }
+  /* the TArrow type constructor is used to represent 
+    functional types of the form a -&gt; b */
+<span style="color:teal;">@@ -131,6 +136,8 @@</span> expr:
+  | expr MINUS expr             { Op ($1,Minus,$3, location()) }
+  | expr MUL expr             { Op ($1,Mul,$3, location()) }
+  | expr DIV expr             { Op ($1,Div,$3, location()) }
+  <span style="color:green;">| FST expr                  { Fst ($2,location()) }</span>
+<span style="color:green;">  | SND expr                  { Snd ($2,location()) }</span> 
+  | expr ASGNOP expr            { Atrib ($1,$3, location()) }
+  | expr LTE expr              { Op ($1, Mic, $3, location()) }
+  | expr LT expr              { Op ($1, MicS, $3, location()) }
+<span style="color:teal;">@@ -195,6 +202,7 @@</span> funexpr:
+  /* having expression between parens here says that one can have any
+     expression as argument to a function application if the expression
+     is wrapped in parentheses */
+  <span style="color:green;">| LPAREN expr COMMA expr RPAREN { Pair ($2,$4,location())}</span>
+  | DEREF expr                 { Deref ($2, location()) }
+  | REF expr                   { Ref ($2, location()) }
+;
+<span style="font-weight:bold;">diff --git a/semantics.ml b/semantics.ml</span>
+<span style="font-weight:bold;">index 2928226..594221b 100644</span>
+<span style="font-weight:bold;">--- a/semantics.ml</span>
+<span style="font-weight:bold;">+++ b/semantics.ml</span>
+<span style="color:teal;">@@ -7,8 +7,9 @@</span> let is_fun : expr -&gt; bool = function
+  | _ -&gt; false
+
+(** Returns true when the expression is a value *)
+let <span style="color:green;">rec</span> is_val : expr -&gt; bool = function
+  | Bool _ | Int _ | Float _ | Loc _ | Skip _ -&gt; true
+  <span style="color:green;">| Pair(v1,v2,_) -&gt; is_val v1 &amp;&amp; is_val v2</span> 
+  | e -&gt; is_fun e
+
+
+<span style="color:teal;">@@ -66,6 +67,26 @@</span> let rec reduce = function
+    (match reduce (e1,s) with 
+      | Some (e1',s') -&gt; Some (Atrib(e1',e2,loc),s')
+      | None -&gt; None)
+  <span style="color:green;">| (Pair(v,e2,loc),s) when is_val v -&gt;</span>
+<span style="color:green;">    (match reduce (e2,s) with</span>
+<span style="color:green;">      | Some(e2',s') -&gt; Some (Pair(v,e2',loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (Pair(e1,e2,loc),s) -&gt;</span>
+<span style="color:green;">    (match reduce (e1,s) with</span>
+<span style="color:green;">      | Some (e1',s') -&gt; Some (Pair(e1',e2,loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (Fst(Pair(v1,v2,loc1),loc),s)</span>
+<span style="color:green;">      -&gt; Some(v1,s)    </span>
+<span style="color:green;">  | (Fst(e,loc),s) -&gt;</span>
+<span style="color:green;">    (match reduce (e,s) with</span>
+<span style="color:green;">      | Some (e',s') -&gt; Some (Fst(e',loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (Snd(Pair(v1,v2,loc1),loc),s)</span>
+<span style="color:green;">      -&gt; Some(v2,s)    </span>
+<span style="color:green;">  | (Snd(e,loc),s) -&gt;</span>
+<span style="color:green;">    (match reduce (e,s) with</span>
+<span style="color:green;">      | Some (e',s') -&gt; Some (Snd(e',loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>    
+  | (Secv(Skip _,e,_),s) -&gt; Some (e,s)                          (*Secv*)
+  | (Secv(e1,e2,loc),s) -&gt;                                      (*SecvS*)
+    (match reduce (e1,s) with Some (e1',s') -&gt; Some (Secv(e1',e2,loc),s')
+<span style="font-weight:bold;">diff --git a/types.ml b/types.ml</span>
+<span style="font-weight:bold;">index d885d97..f9f187e 100644</span>
+<span style="font-weight:bold;">--- a/types.ml</span>
+<span style="font-weight:bold;">+++ b/types.ml</span>
+<span style="color:teal;">@@ -14,6 +14,15 @@</span> let rec infertype (m:(string*tip) list) : expr -&gt; tip = function
+  | Int (n,_) -&gt; TInt
+  | Bool (b,_) -&gt; TBool
+  | Float (f,_) -&gt; TFloat
+  <span style="color:green;">| Pair (e1,e2,_) </span>
+<span style="color:green;">    -&gt; (match (infertype m e1, infertype m e2) with</span>
+<span style="color:green;">      | (t1,t2) -&gt; TPair(t1,t2) )</span>
+<span style="color:green;">  | Fst (p,_) </span>
+<span style="color:green;">    -&gt; ( match (infertype m p) with</span>
+<span style="color:green;">      | TPair(t1,t2) -&gt; t1)</span>
+<span style="color:green;">  | Snd (p,_)</span>
+<span style="color:green;">    -&gt; ( match (infertype m p) with</span>
+<span style="color:green;">      | TPair(t1,t2) -&gt; t2)</span>  
+  | Op(e1,Plus,e2,_) 
+  | Op(e1,Minus,e2,_) 
+  | Op(e1,Mul,e2,_) 
+
+<span style="color:olive;">commit 5b845e6a0d67f8f33b326842d2a5dfc6a7c97956</span>
+Author: Dragos Calin &lt;calinho_gx1992@yahoo.com&gt;
+Date:   Thu Jan 8 10:41:57 2015 +0200
+
+    Add Gitignore
+
+<span style="font-weight:bold;">diff --git a/.gitignore b/.gitignore</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..ef676ba</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/.gitignore</span>
+<span style="color:teal;">@@ -0,0 +1,5 @@</span>
+<span style="color:green;">*.cmo</span>
+<span style="color:green;">*.cmi</span>
+<span style="color:green;">parser.ml</span>
+<span style="color:green;">lexer.ml</span>
+<span style="color:green;">parser.mli</span>
+
+<span style="color:olive;">commit f24e874e59777c178f2552a25b31da1df13824c8</span>
+Author: Dragos Calin &lt;calinho_gx1992@yahoo.com&gt;
+Date:   Thu Jan 8 10:37:10 2015 +0200
+
+    First commit
+
+<span style="font-weight:bold;">diff --git a/Makefile b/Makefile</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..bf60a91</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/Makefile</span>
+<span style="color:teal;">@@ -0,0 +1,53 @@</span>
+
+
+<span style="color:green;">all: imp</span>
+
+<span style="color:green;">opt:</span>
+<span style="color:green;">	ocamlopt -c impAST.ml</span>
+<span style="color:green;">	ocamlyacc parser.mly</span>
+<span style="color:green;">	ocamlopt -c parser.mli</span>
+<span style="color:green;">	ocamllex lexer.mll</span>
+<span style="color:green;">	ocamlopt -c lexer.ml</span>
+<span style="color:green;">	ocamlopt -c parser.ml</span>
+<span style="color:green;">	ocamlopt -c mem.ml</span>
+<span style="color:green;">	ocamlopt -c semantics.ml</span>
+<span style="color:green;">	ocamlopt -c types.ml</span>
+<span style="color:green;">	ocamlopt -c imp.ml</span>
+<span style="color:green;">	ocamlopt -o imp-opt impAST.cmx lexer.cmx parser.cmx mem.cmx semantics.cmx types.cmx imp.cmx</span>
+
+<span style="color:green;">impAST.cmo : impAST.ml</span>
+<span style="color:green;">	ocamlc -c impAST.ml</span>
+
+<span style="color:green;">mem.cmo: mem.ml impAST.cmo</span>
+<span style="color:green;">	ocamlc -c mem.ml</span>
+
+<span style="color:green;">lexer.ml: lexer.mll parser.cmi</span>
+<span style="color:green;">	ocamllex lexer.mll</span>
+
+<span style="color:green;">lexer.cmo: lexer.ml</span>
+<span style="color:green;">	ocamlc -c lexer.ml</span>
+
+<span style="color:green;">parser.ml: parser.mly impAST.cmo</span>
+<span style="color:green;">	ocamlyacc parser.mly</span>
+
+<span style="color:green;">parser.cmi: parser.ml</span>
+<span style="color:green;">	ocamlc -c parser.mli</span>
+
+<span style="color:green;">parser.cmo: parser.ml impAST.cmo</span>
+<span style="color:green;">	ocamlc -c parser.ml</span>
+
+<span style="color:green;">types.cmo: types.ml mem.cmo impAST.cmo</span>
+<span style="color:green;">	ocamlc -c types.ml</span>
+
+<span style="color:green;">semantics.cmo: semantics.ml mem.cmo impAST.cmo</span>
+<span style="color:green;">	ocamlc -c semantics.ml</span>
+
+<span style="color:green;">imp.cmo: imp.ml semantics.cmo types.cmo lexer.cmo</span>
+<span style="color:green;">	ocamlc -c imp.ml</span>
+
+<span style="color:green;">imp: impAST.cmo lexer.cmo parser.cmo imp.cmo mem.cmo semantics.cmo types.cmo</span>
+<span style="color:green;">	ocamlc -o imp impAST.cmo lexer.cmo parser.cmo mem.cmo semantics.cmo types.cmo imp.cmo</span>
+
+<span style="color:green;">clean:</span>
+<span style="color:green;">	rm -f lexer.ml parser.ml parser.mli *.cmo *.cmi imp</span>
+<span style="color:green;">	rm -f *.cmx *.o</span>
+<span style="font-weight:bold;">diff --git a/README.md b/README.md</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..e284ff6</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/README.md</span>
+<span style="color:teal;">@@ -0,0 +1,6 @@</span>
+<span style="color:green;">Semantics Based Interpreter</span>
+<span style="color:green;">===========================</span>
+
+<span style="color:green;">A SOS-based interpreted in OCaml.  Based upon the lecture notes for the class</span>
+<span style="color:green;">Semantics of Programming Languages, Computer Science Tripos, Part 1B, 2014–15</span>
+<span style="color:green;">Peter Sewell, Computer Laboratory, University of Cambridge</span>
+<span style="font-weight:bold;">diff --git a/compile.bat b/compile.bat</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..5a8b2ef</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/compile.bat</span>
+<span style="color:teal;">@@ -0,0 +1,11 @@</span>
+<span style="color:green;">ocamlc -c impAST.ml</span>
+<span style="color:green;">ocamlyacc parser.mly</span>
+<span style="color:green;">ocamlc -c parser.mli</span>
+<span style="color:green;">ocamllex lexer.mll</span>
+<span style="color:green;">ocamlc -c lexer.ml</span>
+<span style="color:green;">ocamlc -c parser.ml</span>
+<span style="color:green;">ocamlc -c mem.ml</span>
+<span style="color:green;">ocamlc -c semantics.ml</span>
+<span style="color:green;">ocamlc -c types.ml</span>
+<span style="color:green;">ocamlc -c imp.ml</span>
+<span style="color:green;">ocamlc -o imp.exe impAST.cmo lexer.cmo parser.cmo mem.cmo semantics.cmo types.cmo imp.cmo</span>
+<span style="font-weight:bold;">diff --git a/compile.sh b/compile.sh</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..7b01d7e</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/compile.sh</span>
+<span style="color:teal;">@@ -0,0 +1,11 @@</span>
+<span style="color:green;">ocamlc -c impAST.ml</span>
+<span style="color:green;">ocamlyacc parser.mly</span>
+<span style="color:green;">ocamlc -c parser.mli</span>
+<span style="color:green;">ocamllex lexer.mll</span>
+<span style="color:green;">ocamlc -c lexer.ml</span>
+<span style="color:green;">ocamlc -c parser.ml</span>
+<span style="color:green;">ocamlc -c mem.ml</span>
+<span style="color:green;">ocamlc -c semantics.ml</span>
+<span style="color:green;">ocamlc -c types.ml</span>
+<span style="color:green;">ocamlc -c imp.ml</span>
+<span style="color:green;">ocamlc -o imp impAST.cmo lexer.cmo parser.cmo mem.cmo semantics.cmo types.cmo imp.cmo</span>
+<span style="font-weight:bold;">diff --git a/imp.ml b/imp.ml</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..89d9881</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/imp.ml</span>
+<span style="color:teal;">@@ -0,0 +1,42 @@</span>
+<span style="color:green;">(** Entry point for the imp interpreter *)</span>
+<span style="color:green;">open Lexing</span>
+<span style="color:green;">open Types</span>
+<span style="color:green;">open ImpAST</span>
+
+<span style="color:green;">(** Typechecks [pgm], and if scuccessful, executes it</span>
+<span style="color:green;">    and prints its final configuration.</span>
+<span style="color:green;">    @param debug  whether intermediate configurations should be displayed.</span>
+<span style="color:green;">    @param pgm the program to be executed.</span>
+<span style="color:green;">   *)</span>
+<span style="color:green;">let type_and_run (debug:bool) (pgm:expr) : unit =</span>
+<span style="color:green;">      if (type_check pgm) then begin</span>
+<span style="color:green;">          Printf.printf &quot;The program typechecks. Executing...&quot; ;</span>
+<span style="color:green;">          if debug then print_newline () else () ;</span>
+<span style="color:green;">          flush stdout ;</span>
+<span style="color:green;">          let final = (Semantics.evaluate debug (pgm,[])) in</span>
+<span style="color:green;">            Printf.printf &quot; done.\n Final configuration:\n\n  %s\n\n&quot;</span>
+<span style="color:green;">                  (Semantics.string_of_config final)</span>
+<span style="color:green;">      end else ()</span>
+
+
+<span style="color:green;">(** Opens the program specified as the first argument in the command line</span>
+<span style="color:green;">    and returns a channel to it. *)</span>
+<span style="color:green;">let cin () =</span>
+<span style="color:green;">      if Array.length Sys.argv &gt; 1</span>
+<span style="color:green;">      then open_in Sys.argv.(1)</span>
+<span style="color:green;">      else failwith &quot;please specify program file&quot;</span>
+
+<span style="color:green;">(** Main function. Calls the lexer and the parser to obtain an expression</span>
+<span style="color:green;">    from the given program file, then calls [type_and_run] on it.</span>
+<span style="color:green;">    Formats lexing and parsing exceptions. *)</span>
+<span style="color:green;">let _ =</span>
+<span style="color:green;">  let lexbuf = Lexing.from_channel (cin ()) in</span>
+<span style="color:green;">    lexbuf.lex_curr_p &lt;- { lexbuf.lex_curr_p with pos_fname = Sys.argv.(1) };</span>
+<span style="color:green;">    try</span>
+<span style="color:green;">      let pgm = Parser.main Lexer.token lexbuf in</span>
+<span style="color:green;">       type_and_run (Array.length Sys.argv &gt; 2) pgm</span>
+<span style="color:green;">    with</span>
+<span style="color:green;">      Lexer.LexerError (f,l,c,_,_) -&gt;</span>
+<span style="color:green;">        Printf.eprintf &quot;%s:%d.%d\nLexer Error: Unexpected token '%s'\n&quot; f l c (Lexing.lexeme lexbuf) </span>
+<span style="color:green;">    | Lexer.ParseError loc -&gt;</span>
+<span style="color:green;">        Printf.eprintf &quot;%s\nParse Error: Unexpected token '%s'\n&quot; (string_of_locatie loc) (Lexing.lexeme lexbuf)</span> 
+<span style="font-weight:bold;">diff --git a/impAST.ml b/impAST.ml</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..b754368</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/impAST.ml</span>
+<span style="color:teal;">@@ -0,0 +1,336 @@</span>
+<span style="color:green;">(** Module containing type declarations for expressions and types, </span>
+<span style="color:green;">    as well as generic functions for manipulating expressions.  *)</span>
+
+
+<span style="color:green;">(** Type for representing locations in a file.  *)</span>
+<span style="color:green;">type locatie = string * int * int * int * int</span>
+<span style="color:green;">(** A location is a tuple (fname, bline, bcolumn, eline, ecolumn), where</span>
+<span style="color:green;">    fname is the name of the file, bline and bcolumn give the line and column </span>
+<span style="color:green;">    where the element begins, while eline and ecolumn give the line and column</span>
+<span style="color:green;">    where the element ends *)</span>
+
+
+<span style="color:green;">(** Generates the string corresponding to a location in the source program  *)</span>
+<span style="color:green;">let string_of_locatie (f,bl,bc,el,ec) = </span>
+<span style="color:green;">  Printf.sprintf &quot;%s:%d.%d-%d.%d&quot; f bl bc el ec</span>
+
+
+<span style="color:green;">(** Exception constructor for expected matching errors *)</span>
+<span style="color:green;">exception MatchError of string * locatie</span>
+
+<span style="color:green;">(** Type for representing binary operation symbols.  *)</span>
+<span style="color:green;">type op =</span>
+<span style="color:green;">  | Plus</span>
+<span style="color:green;">  | Mic</span>
+<span style="color:green;">  | Minus</span>
+<span style="color:green;">  | Mul</span>
+<span style="color:green;">  | Div</span>
+<span style="color:green;">  | MicS</span>
+
+<span style="color:green;">(** Generates the string corresponding to a binary operation symbol *)</span>
+<span style="color:green;">let string_of_op = function</span>
+<span style="color:green;">  | Plus -&gt; &quot;+&quot;</span>
+<span style="color:green;">  | Minus -&gt; &quot;-&quot;</span>
+<span style="color:green;">  | Mul -&gt; &quot;*&quot;</span>
+<span style="color:green;">  | Div -&gt; &quot;/&quot;</span>
+<span style="color:green;">  | MicS -&gt; &quot;&lt;&quot;</span>
+<span style="color:green;">  | Mic -&gt; &quot;&lt;=&quot;</span>
+
+<span style="color:green;">(** Generates the string corresponding to a memory location.  *)</span>
+<span style="color:green;">let string_of_l s = &quot;_loc&quot; ^ string_of_int s ^ &quot;_&quot;</span>
+
+
+<span style="color:green;">(** Types of expressions *)</span>
+<span style="color:green;">type tip = TInt </span>
+<span style="color:green;">  | TFloat </span>
+<span style="color:green;">  | TBool </span>
+<span style="color:green;">  | TUnit </span>
+<span style="color:green;">  | TArrow of tip * tip  (** [TArrow] encodes types associated to functions.</span>
+<span style="color:green;">                             More precisely, [ TArrow(t1,t2) ] </span>
+<span style="color:green;">                             represents type {i t1 -&gt; t2}.  *)</span>
+<span style="color:green;">  | TRef of tip (** [TRef t] represents the type associated to references to </span>
+<span style="color:green;">                    memory locations storing elements of type t *)</span>
+<span style="color:green;">  | TSum of tip * tip (** [TSum] encodes types associated to choices *)</span>
+
+<span style="color:green;">(** Generates the string corresponding to the given expression of type tip *)</span>
+<span style="color:green;">let rec string_of_tip = function</span>
+<span style="color:green;">  | TInt -&gt; &quot;int&quot;</span>
+<span style="color:green;">  | TFloat -&gt; &quot;float&quot;</span>
+<span style="color:green;">  | TBool -&gt; &quot;bool&quot;</span>
+<span style="color:green;">  | TUnit -&gt; &quot;unit&quot;</span>
+<span style="color:green;">  | TArrow (t1,t2) -&gt; &quot;(&quot; ^ string_of_tip t1 ^ &quot; -&gt; &quot; ^ string_of_tip t2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | TSum (t1,t2) -&gt; &quot;(&quot; ^ string_of_tip t1 ^ &quot; + &quot; ^ string_of_tip t2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | TRef t -&gt; string_of_tip t ^ &quot; ref&quot;</span>
+
+
+<span style="color:green;">(** The abstract type for representing IMP expressions *)</span>
+<span style="color:green;">type expr =                                    (** e ::= *)</span>
+<span style="color:green;">  | Bool of bool * locatie                         (** | b *)</span>
+<span style="color:green;">  | Int of int * locatie                           (** | n *)</span>
+<span style="color:green;">  | Float of float * locatie                       (** | f *)</span>
+<span style="color:green;">  | Op of expr * op * expr * locatie               (** | e op e *)</span>
+<span style="color:green;">  | Secv of expr * expr * locatie                  (** | e ; e *)</span>
+<span style="color:green;">  | Skip of locatie                                (** | ()    *)</span>
+<span style="color:green;">  | If of expr * expr * expr * locatie             (** | if e then e else e *)</span>
+<span style="color:green;">  | While of expr * expr * locatie                 (** | while e do e done *)</span>
+<span style="color:green;">  | For of expr * expr * expr * expr * locatie     (** | for(e;e;e)e *)</span>
+<span style="color:green;">  | Var of string * locatie                        (** | x *)</span>
+<span style="color:green;">  | Fun of string * tip * expr * locatie           (** | fun(x:T)-&gt;e *)</span>
+<span style="color:green;">  | App of expr * expr * locatie                   (** | e e *)</span>
+<span style="color:green;">  | IntOfFloat of locatie                          (** | int_of_float *)</span>
+<span style="color:green;">  | FloatOfInt of locatie                          (** | float_of_int *)</span>
+<span style="color:green;">  | Let of string * expr * expr * locatie          (** | let x = e in e *)</span>
+<span style="color:green;">  | LetRec of string * tip * expr * expr * locatie (** | let rec x:T = e in e *)</span>
+<span style="color:green;">  | Ref of expr * locatie                          (** | ref e *)</span>
+<span style="color:green;">  | Deref of expr * locatie                        (** | ! e *)</span>
+<span style="color:green;">  | Atrib of expr * expr * locatie                 (** | e := e *)</span>
+<span style="color:green;">  | Loc of int * locatie                           (** | l  {i as a value} *)</span>
+<span style="color:green;">  | InjL of expr * tip * locatie                   (** | InjL e : T *)</span>
+<span style="color:green;">  | InjR of expr * tip * locatie                   (** | InjR e : T *)</span>
+<span style="color:green;">  | Match of expr * expr * expr * locatie          (** | match e with ... *)</span>
+
+<span style="color:green;">(** Retrieves the file location component associated to the given expression *)</span>
+<span style="color:green;">let location = function</span>
+<span style="color:green;">  | Int (_,l) | Float (_,l) | Bool (_,l)</span>
+<span style="color:green;">  | Loc (_,l) | Ref (_,l) | Deref (_,l) | Atrib (_,_,l)</span>
+<span style="color:green;">  | Op (_, _, _,l)</span>
+<span style="color:green;">  | If (_, _, _,l) | While (_, _,l) | For (_, _, _, _,l)</span>
+<span style="color:green;">  | Secv (_,_,l) | Skip l </span>
+<span style="color:green;">  | Var (_,l) | App (_,_,l) | Fun (_,_,_,l) | IntOfFloat l | FloatOfInt l</span>
+<span style="color:green;">  | Let (_,_,_,l) | LetRec (_,_,_,_,l)</span>
+<span style="color:green;">  | InjL (_,_,l) | InjR (_,_,l) | Match (_,_,_,l)</span>
+<span style="color:green;">  -&gt; l</span>
+
+<span style="color:green;">(** Returns the list of (direct) subexpressions of a given expression *)</span>
+<span style="color:green;">let exps : expr -&gt; expr list  = function</span>
+<span style="color:green;"> | IntOfFloat _ | FloatOfInt _ | Bool _ | Int _ | Float _ | Loc _</span>
+<span style="color:green;"> | Var _ | Skip _ </span>
+<span style="color:green;">   -&gt; []</span>
+<span style="color:green;"> | Ref (e,_) | Deref (e,_) | Fun(_,_,e,_) | InjL (e,_,_) | InjR (e,_,_)</span>
+<span style="color:green;">   -&gt; [e]</span>
+<span style="color:green;"> | Atrib(e1,e2,_) | Op(e1,_,e2,_) | Secv(e1,e2,_) | While(e1,e2,_) </span>
+<span style="color:green;"> | App(e1,e2,_) | Let (_,e1,e2,_) | LetRec (_,_,e1,e2,_) </span>
+<span style="color:green;">   -&gt; [e1;e2]</span>
+<span style="color:green;"> | If(e1,e2,e3,_) | Match(e1,e2,e3,_)</span>
+<span style="color:green;">   -&gt; [e1;e2;e3]</span>
+<span style="color:green;"> | For(e1,e2,e3,e4,_)</span>
+<span style="color:green;">   -&gt; [e1;e2;e3;e4]</span>
+<span style="color:green;">(** For example, [exps (Op(Int (3,l),Plus Var (&quot;x&quot;,l))) = [Int(3,l);Var(&quot;x&quot;,l)]]</span>
+<span style="color:green;">*)</span>
+
+<span style="color:green;">(** The reverse of the function above. Takes as argument a pair (e,l) where </span>
+<span style="color:green;">    e is an expression and l is list of expressions which must match the </span>
+<span style="color:green;">    direct subexpressions of e.  If that is the case, the direct subexpressions</span>
+<span style="color:green;">    of e are replaced with the oned in l, from left to right. *)</span>
+<span style="color:green;">let revExps : expr * expr list -&gt; expr = function</span>
+<span style="color:green;">   | (e,[]) -&gt; e</span>
+<span style="color:green;">   | (Deref(_,loc),[e]) -&gt; Deref(e,loc)</span>
+<span style="color:green;">   | (Ref(_,loc),[e]) -&gt; Ref(e,loc)</span>
+<span style="color:green;">   | (Fun(x,t,_,loc),[e]) -&gt; Fun(x,t,e,loc) </span>
+<span style="color:green;">   | (Atrib(_,_,loc),[e1;e2]) -&gt; Atrib(e1,e2,loc)</span>
+<span style="color:green;">   | (Op(_,op,_,loc),[e1;e2]) -&gt; Op(e1,op,e2,loc) </span>
+<span style="color:green;">   | (Secv(_,_,loc),[e1;e2]) -&gt; Secv(e1,e2,loc) </span>
+<span style="color:green;">   | (While(_,_,loc),[e1;e2]) -&gt; While(e1,e2,loc) </span>
+<span style="color:green;">   | (App(_,_,loc),[e1;e2]) -&gt; App(e1,e2,loc) </span>
+<span style="color:green;">   | (Let(x,_,_,loc),[e1;e2]) -&gt; Let(x,e1,e2,loc) </span>
+<span style="color:green;">   | (LetRec(x,t,_,_,loc),[e1;e2]) -&gt; LetRec(x,t,e1,e2,loc) </span>
+<span style="color:green;">   | (If(_,_,_,loc), [e1;e2;e3]) -&gt; If(e1,e2,e3,loc)</span>
+<span style="color:green;">   | (For(_,_,_,_,loc), [e1;e2;e3;e4]) -&gt; For(e1,e2,e3,e4,loc)</span>
+<span style="color:green;">   | (InjL(_,t,loc),[e]) -&gt; InjL(e,t,loc)</span>
+<span style="color:green;">   | (InjR(_,t,loc),[e]) -&gt; InjR(e,t,loc)</span>
+<span style="color:green;">   | (Match(_,_,_,loc),[e1;e2;e3]) -&gt; Match(e1,e2,e3,loc)</span>
+<span style="color:green;">   | (e,_) -&gt;  raise (MatchError (&quot;ImpAST.revExps&quot;, location e))</span>
+<span style="color:green;">(** For example, </span>
+<span style="color:green;">    [revExps (Op(Int (3,l),Plus Var (&quot;x&quot;,l)),  [Int(3,l);Int(7,l)]) =  </span>
+<span style="color:green;">              Op(Int (3,l),Plus Int (7,l))] *)</span>
+
+<span style="color:green;">(** Parameterized type for the result of the [pre] argument of a visitor *)</span>
+<span style="color:green;">type 't preResult = </span>
+<span style="color:green;">  | More (** says the current expression should continue to be visited *)</span>
+<span style="color:green;">  | Done of 't  (** Directly provides a a result for the current expression *)</span>
+<span style="color:green;"> </span>
+<span style="color:green;">(** {{: &quot;http://en.wikipedia.org/wiki/Visitor_pattern&quot;} Visitor pattern} </span>
+<span style="color:green;">    offering a generic mechanism for collecting information or transforming </span>
+<span style="color:green;">    expressions which allows focusion only on the aggregation/transformation</span>
+<span style="color:green;">    part. </span>
+<span style="color:green;">    @param exp the expression being visited</span>
+<span style="color:green;">    @param pre function to be applied before visiting an expression</span>
+<span style="color:green;">               if result of pre is [More], the expression will be visited</span>
+<span style="color:green;">               if result of pre is [Done r], then visit will evaluate to r</span>
+<span style="color:green;">    @param post function to be applied after visiting exp's subexpressions</span>
+<span style="color:green;">                takes as argument the expression and the list of results for</span>
+<span style="color:green;">                its subexpressions and uses them to compute the final result.</span>
+<span style="color:green;">*)</span>
+<span style="color:green;">let rec visit </span>
+<span style="color:green;">         (pre : expr -&gt; 't preResult) </span>
+<span style="color:green;">         (post : expr * 't list -&gt; 't) </span>
+<span style="color:green;">         (exp : expr)</span>
+<span style="color:green;">       : 't = </span>
+<span style="color:green;">  match pre exp with</span>
+<span style="color:green;">    | More -&gt; post (exp, (List.map (visit pre post) (exps exp)))</span>
+<span style="color:green;">    | Done result -&gt; result</span>
+
+<span style="color:green;">(** An instance of the [visit] function above in which the [pre]-visitor</span>
+<span style="color:green;">    always returns [More], which means the expression is completely visited. *)</span>
+<span style="color:green;">let postVisit</span>
+<span style="color:green;">       (post : expr * 't list -&gt; 't)</span>
+<span style="color:green;">     : expr -&gt; 't =</span>
+<span style="color:green;">  visit (fun e -&gt; More) post</span>
+
+<span style="color:green;">(** An instance of the [visit] function above used for transforming expressions</span>
+<span style="color:green;">    To simplify the [post] function, we first apply [revExps] to put back the</span>
+<span style="color:green;">    transformed sub-expressions in the original one.  This way, the [post]</span>
+<span style="color:green;">    method simply takes expressions to expressions. *)</span>
+<span style="color:green;">let transform</span>
+<span style="color:green;">       (pre : expr -&gt; expr preResult)</span>
+<span style="color:green;">       (post : expr -&gt; expr)</span>
+<span style="color:green;">     : expr -&gt; expr =</span>
+<span style="color:green;">  visit pre (fun p -&gt; post (revExps p))</span>
+
+<span style="color:green;">(** Removes an element [x] from a sorted list *)</span>
+<span style="color:green;">let rec remove x = function</span>
+<span style="color:green;">  | [] -&gt; []</span>
+<span style="color:green;">  | h::t when h &lt; x -&gt; h::(remove x t) </span>
+<span style="color:green;">  | h::t when h = x -&gt; t</span>
+<span style="color:green;">  | l -&gt; l</span>
+
+<span style="color:green;">(** Merges two sorted list, removing the duplicates *)</span>
+<span style="color:green;">let union l1 l2 = let rec punion = function</span>
+<span style="color:green;">  | ([],l) -&gt; l</span>
+<span style="color:green;">  | (l,[]) -&gt; l</span>
+<span style="color:green;">  | (h1::t1,h2::t2) when h1=h2 -&gt; h1::punion (t1,t2)</span>
+<span style="color:green;">  | (h1::t1,h2::t2) when h1&lt;h2 -&gt; h1::punion (t1,h2::t2)</span>
+<span style="color:green;">  | (h1::t1,h2::t2) -&gt; h2::punion (h1::t1,t2)</span>
+<span style="color:green;"> in punion (l1,l2)</span>
+
+<span style="color:green;">(** Uses postVisit to collect all free variables of an expression [e].</span>
+<span style="color:green;">    The aggregation function, [var_fold] implements the 4 interesting </span>
+<span style="color:green;">    cases [Var], [Fun], [Let], and [LetRec], and simply calls union</span>
+<span style="color:green;">    on the list of variables produced by subexpressions for all other cases *)</span>
+<span style="color:green;">let var e = </span>
+<span style="color:green;">  let var_fold = function</span>
+<span style="color:green;">     | (Var (x,_),_) -&gt; [x]</span>
+<span style="color:green;">     | (Fun (x,_,_,_),[vs]) -&gt; remove x vs</span>
+<span style="color:green;">     | (Let (x,_,_,_), [vs1;vs2]) -&gt; union vs1 (remove x vs2)</span>
+<span style="color:green;">     | (LetRec (x,_,_,_,_), [vs1;vs2]) -&gt; remove x (union vs1 vs2)</span>
+<span style="color:green;">     | (_,vs_list) -&gt; List.fold_left union [] vs_list</span>
+<span style="color:green;">  in postVisit var_fold e</span>
+
+<span style="color:green;">(** Gets all free variables ocurring in the image of substitution </span>
+<span style="color:green;">    @param sigma  : (string * (exp * string list)) list</span>
+<span style="color:green;">           see substitution below. *)</span>
+<span style="color:green;">let varsImSigma = List.fold_left (fun l1  -&gt; fun (_,(_,l2)) -&gt; union l1 l2) []</span>
+
+<span style="color:green;">(** Returns the name of a variable not ocurring [vlist].</span>
+<span style="color:green;">    The name is of the form xN where [N] is a number, computed</span>
+<span style="color:green;">    to be the least number for which xN is not in the list *)</span>
+<span style="color:green;">let rec free vlist = </span>
+<span style="color:green;">  let max = List.fold_left </span>
+<span style="color:green;">     (fun m -&gt; fun x -&gt; </span>
+<span style="color:green;">       if String.get x 0 &lt;&gt; 'x' </span>
+<span style="color:green;">       then m </span>
+<span style="color:green;">       else try let m' = int_of_string (String.sub x 1 (String.length x - 1))</span>
+<span style="color:green;">            in max m m'</span>
+<span style="color:green;">            with Failure _ -&gt; m) 0 vlist </span>
+<span style="color:green;">  in &quot;x&quot; ^ (string_of_int (max+1))</span>
+
+<span style="color:green;">(** Checks wehther [x] can be found in the sorted list [invars]. *)</span>
+<span style="color:green;">let rec invars x = function</span>
+<span style="color:green;">  | [] -&gt; false</span>
+<span style="color:green;">  | h::t when h &lt; x -&gt; invars x t </span>
+<span style="color:green;">  | h::t when h = x -&gt; true</span>
+<span style="color:green;">  | _ -&gt; false</span>
+
+<span style="color:green;">(** Implementation for substitution. </span>
+<span style="color:green;">    Instantiates the [transform] function where the [post] function is </span>
+<span style="color:green;">    the identity.</span>
+<span style="color:green;">    As for free variables, we only need to explicitly define </span>
+<span style="color:green;">    the interesting cases [Var], [Fun], [Let] and [LetRec];  </span>
+<span style="color:green;">    the others are handled by the recursion. </span>
+
+<span style="color:green;">    @param sigma  the substitution given as a list of pairs where the</span>
+<span style="color:green;">                  first component is the name of the variable being replaced</span>
+<span style="color:green;">                  while the second component is also a pair made of the</span>
+<span style="color:green;">                  replacement expression and the list of its free variables. *)</span>
+<span style="color:green;">let rec substitute (sigma : (string * (expr * string list)) list) = </span>
+<span style="color:green;">  transform </span>
+<span style="color:green;">  (function </span>
+<span style="color:green;">     | Var (x,l) -&gt; (try </span>
+<span style="color:green;">                      let (sx,_) = List.assoc x sigma in Done sx </span>
+<span style="color:green;">                    with Not_found -&gt; Done (Var (x,l)))</span>
+<span style="color:green;">     | Fun (x,t,e,l) </span>
+<span style="color:green;">      -&gt; let vs = varsImSigma sigma in</span>
+<span style="color:green;">           if invars x vs || List.mem_assoc x sigma </span>
+<span style="color:green;">           then let x' = free (union vs (var e)) in</span>
+<span style="color:green;">                Done (Fun (x',t,(substitute ((x,(Var (x',l), [x']))::sigma) e),l))</span>
+<span style="color:green;">           else More</span>
+<span style="color:green;">     | Let (x,e1,e2,l)</span>
+<span style="color:green;">       -&gt; let vs = varsImSigma sigma in</span>
+<span style="color:green;">           if invars x vs || List.mem_assoc x sigma</span>
+<span style="color:green;">           then let x' = free (union vs (var e2)) in</span>
+<span style="color:green;">                Done (Let (x',substitute sigma e1, (substitute ((x,(Var (x',l), [x']))::sigma) e2),l))</span>
+<span style="color:green;">           else More</span>
+<span style="color:green;">     | LetRec (x,t,e1,e2,l)</span>
+<span style="color:green;">       -&gt; let vs = varsImSigma sigma in</span>
+<span style="color:green;">           if invars x vs || List.mem_assoc x sigma</span>
+<span style="color:green;">           then let x' = free (union (union vs (var e1)) (var e2)) in</span>
+<span style="color:green;">                let sigma' = ((x,(Var (x',l), [x']))::sigma) in</span>
+<span style="color:green;">                Done (LetRec (x',t,substitute sigma' e1, substitute sigma' e2,l))</span>
+<span style="color:green;">           else More</span>
+<span style="color:green;">     | _ -&gt; More)</span>
+<span style="color:green;">  (fun x -&gt; x)</span>
+
+
+<span style="color:green;">(** Substitution as it is used in the semantics.</span>
+<span style="color:green;">    @param x the name of the variable being substituted</span>
+<span style="color:green;">    @param ex the expression replacing free variables with name [x]</span>
+<span style="color:green;">    @param e the expression in which to substitute</span>
+<span style="color:green;">*)</span>
+<span style="color:green;">let subst (x:string) (ex:expr) (e:expr) : expr = </span>
+<span style="color:green;">  substitute [x,(ex, var ex)] e</span>
+
+<span style="color:green;">(** Computes the string representation of an expression [e].  Uses</span>
+<span style="color:green;">    [postVisit] which allows writing a function relying on the fact that </span>
+<span style="color:green;">    the string representations of subexpressions are already computed. *)</span>
+<span style="color:green;">let rec string_of_expr e = </span>
+<span style="color:green;">  let string_of_expr_fold = function</span>
+<span style="color:green;">  | (IntOfFloat _,_) -&gt; &quot;int_of_float&quot;</span>
+<span style="color:green;">  | (FloatOfInt _,_) -&gt; &quot;float_of_int&quot;</span>
+<span style="color:green;">  | (Int (i,_),_) -&gt; string_of_int i</span>
+<span style="color:green;">  | (Float (f,_),_) -&gt; string_of_float f</span>
+<span style="color:green;">  | (Bool (b,_),_) -&gt; string_of_bool b</span>
+<span style="color:green;">  | (Loc (l,_),_) -&gt; string_of_l l</span>
+<span style="color:green;">  | (Ref _,[s]) -&gt; &quot;ref (&quot; ^ s ^ &quot;)&quot;</span>
+<span style="color:green;">  | (Deref _,[s]) -&gt; &quot;! (&quot; ^ s ^ &quot;)&quot;</span>
+<span style="color:green;">  | (Var (s,_),_) -&gt; s</span>
+<span style="color:green;">  | (Op (_,b, _,_),[s1;s2]) -&gt; &quot;(&quot; ^ s1 ^ (string_of_op b) ^ s2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | (Atrib _,[s1;s2]) -&gt; &quot;(&quot; ^ s1 ^ &quot;:=&quot; ^ s2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | (If _,[s1;s2;s3]) -&gt;</span>
+<span style="color:green;">    &quot;(if &quot; ^ s1 ^ &quot;\nthen &quot; ^ s2 ^ &quot;\nelse &quot; ^ s3 ^ &quot;)&quot;</span>
+<span style="color:green;">  | (While _,[s1;s2]) -&gt;</span>
+<span style="color:green;">    &quot;while &quot; ^ s1 ^ &quot; do \n&quot; ^ s2 ^ &quot;\ndone&quot;</span>
+<span style="color:green;">  | (For _,[s1;s2;s3;s4])</span>
+<span style="color:green;">    -&gt; &quot;(for (&quot; ^ s1 ^ &quot;; &quot; ^ s2 ^ &quot;; &quot; ^ s3 ^ &quot;) \n&quot; ^ s4 ^ &quot;\n)&quot;</span>
+<span style="color:green;">  | (Secv _,[s1;s2]) -&gt;</span>
+<span style="color:green;">    &quot;(&quot; ^ s1 ^ &quot;;\n&quot; ^ s2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | (Skip _, _) -&gt; &quot;()&quot;</span>
+<span style="color:green;">  | (Fun (x,t,_,_),[s]) -&gt; </span>
+<span style="color:green;">    &quot;(fun (&quot; ^ x ^ &quot;:&quot; ^ string_of_tip t ^ &quot;) -&gt; &quot; ^ s ^ &quot;)&quot;</span>
+<span style="color:green;">  | (Let (x,_,_,_),[s1;s2]) -&gt; </span>
+<span style="color:green;">    &quot;(let &quot; ^ x ^ &quot; = &quot; ^ s1 ^ &quot; in &quot; ^ s2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | (LetRec (x,t,_,_,_),[s1;s2]) -&gt; </span>
+<span style="color:green;">    &quot;(let rec &quot; ^ x ^ &quot;:&quot; ^ string_of_tip t ^ &quot; = &quot; ^ s1 ^ &quot; in &quot; ^ s2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | (App _, [s1;s2]) -&gt; </span>
+<span style="color:green;">    &quot; (&quot; ^ s1 ^ s2 ^ &quot;)&quot;</span>
+<span style="color:green;">  | (InjL (_,t,_), [s]) -&gt; &quot;InjL (&quot; ^ s ^ &quot; : &quot; ^ string_of_tip t ^ &quot;)&quot;</span>
+<span style="color:green;">  | (InjR (_,t,_), [s]) -&gt; &quot;InjR (&quot; ^ s ^ &quot; : &quot; ^ string_of_tip t ^ &quot;)&quot;</span>
+<span style="color:green;">  | (Match (_,Fun(x,t,e,_),Fun(x',t',e',_),_), s::_) -&gt;</span>
+<span style="color:green;">    &quot;(match &quot; ^ s ^ &quot; with &quot; ^ </span>
+<span style="color:green;">        &quot;InjL (&quot; ^ x ^ &quot;:&quot; ^ string_of_tip t ^ &quot;) -&gt; &quot; ^  string_of_expr e</span>
+<span style="color:green;">       ^ &quot; | &quot; ^</span>
+<span style="color:green;">        &quot;InjR (&quot; ^ x' ^ &quot;:&quot; ^ string_of_tip t' ^ &quot;) -&gt; &quot; ^ string_of_expr e'</span>
+<span style="color:green;">       ^ &quot;)&quot;</span>
+<span style="color:green;">  | _ -&gt;  let (f,l,c,_,_) as loc = location e in </span>
+<span style="color:green;">             raise (MatchError (&quot;ImpAST.string_of_expr&quot;, loc))</span>
+<span style="color:green;">  in postVisit string_of_expr_fold e</span>
+
+<span style="font-weight:bold;">diff --git a/lexer.mll b/lexer.mll</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..ef1eae5</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/lexer.mll</span>
+<span style="color:teal;">@@ -0,0 +1,135 @@</span>
+<span style="color:green;">(* File lexer.mll *)</span>
+<span style="color:green;">{</span>
+<span style="color:green;">open Parser        (* The type token is defined in parser.mli *)</span>
+
+<span style="color:green;">(**</span>
+<span style="color:green;">  Type of exception used for lexer errors.</span>
+<span style="color:green;">  Parameter:  location in the file.</span>
+<span style="color:green;"> *)</span>
+<span style="color:green;">exception LexerError of ImpAST.locatie</span>
+<span style="color:green;">(**</span>
+<span style="color:green;">  Type of exception used for parser errors.</span>
+<span style="color:green;">  Parameter:  location in the file</span>
+<span style="color:green;"> *)</span>
+<span style="color:green;">exception ParseError of ImpAST.locatie</span>
+
+<span style="color:green;">(**  </span>
+<span style="color:green;">  Incrementing line numbers (at line breaks) while tokenizing</span>
+<span style="color:green;">  @param lexbuf lexer internal object of Lexing.lexbuf type</span>
+<span style="color:green;">  @see Lexing#lexbuf and Lexing#position</span>
+<span style="color:green;"> *)</span>
+<span style="color:green;">let incr_linenum lexbuf =</span>
+<span style="color:green;">      let pos = lexbuf.Lexing.lex_curr_p in</span>
+<span style="color:green;">      lexbuf.Lexing.lex_curr_p &lt;- { pos with</span>
+<span style="color:green;">        (* incrementing line number *)</span>
+<span style="color:green;">        Lexing.pos_lnum = pos.Lexing.pos_lnum + 1;</span>
+<span style="color:green;">        (* setting offset for beggining of line *)</span>
+<span style="color:green;">        Lexing.pos_bol = pos.Lexing.pos_cnum;</span>
+<span style="color:green;">      }</span>
+
+<span style="color:green;">(**</span>
+<span style="color:green;">  Formats an error string at the location given by current tokenizing position.</span>
+<span style="color:green;">  @param lexbuf lexer internal object of Lexing.lexbuf type</span>
+<span style="color:green;">  @see Lexing#lexbuf and Lexing#position</span>
+<span style="color:green;"> *)</span>
+<span style="color:green;">let lex_error lexbuf =</span>
+<span style="color:green;">         begin</span>
+<span style="color:green;">           let curr = lexbuf.Lexing.lex_curr_p in</span>
+<span style="color:green;">           let file = curr.Lexing.pos_fname</span>
+<span style="color:green;">           and line = curr.Lexing.pos_lnum</span>
+<span style="color:green;">           and cnum = curr.Lexing.pos_cnum - curr.Lexing.pos_bol in</span>
+<span style="color:green;">              raise (LexerError (file,line,cnum,line,cnum))</span>
+<span style="color:green;">         end</span>
+
+<span style="color:green;">(**</span>
+<span style="color:green;">  A hash table associating symbol constants to keywords.</span>
+<span style="color:green;">  *)</span>
+<span style="color:green;">let keyword_table = Hashtbl.create 20   </span>
+<span style="color:green;">                   (* create an hashtable with initial capacity 20 *)</span>
+<span style="color:green;">let _ =</span>
+<span style="color:green;">    List.iter (fun (kwd, tok) -&gt; Hashtbl.add keyword_table kwd tok)</span>
+<span style="color:green;">    (* insert each keyyword-symbol pair in the list into the hashtable *)</span>
+<span style="color:green;">  [</span>
+<span style="color:green;">   ( &quot;fun&quot;          , FUN );</span>
+<span style="color:green;">   ( &quot;int&quot;          , TINT );</span>
+<span style="color:green;">   ( &quot;bool&quot;         , TBOOL );</span>
+<span style="color:green;">   ( &quot;float&quot;        , TFLOAT );</span>
+<span style="color:green;">   ( &quot;unit&quot;         , TUNIT );</span>
+<span style="color:green;">   ( &quot;int_of_float&quot; , INT_CAST );</span>
+<span style="color:green;">   ( &quot;float_of_int&quot; , FLOAT_CAST );</span>
+<span style="color:green;">   ( &quot;if&quot;           , IF );</span>
+<span style="color:green;">   ( &quot;then&quot;         , THEN );</span>
+<span style="color:green;">   ( &quot;else&quot;         , ELSE );</span>
+<span style="color:green;">   ( &quot;while&quot;        , WHILE );</span>
+<span style="color:green;">   ( &quot;do&quot;           , DO );</span>
+<span style="color:green;">   ( &quot;done&quot;         , DONE );</span>
+<span style="color:green;">   ( &quot;for&quot;          , FOR );</span>
+<span style="color:green;">   ( &quot;true&quot;         , TRUE );</span>
+<span style="color:green;">   ( &quot;false&quot;        , FALSE );</span>
+<span style="color:green;">   ( &quot;let&quot;          , LET );</span>
+<span style="color:green;">   ( &quot;rec&quot;          , REC );</span>
+<span style="color:green;">   ( &quot;in&quot;           , IN );</span>
+<span style="color:green;">   ( &quot;ref&quot;          , REF );</span>
+<span style="color:green;">   ( &quot;match&quot;        , MATCH );</span>
+<span style="color:green;">   ( &quot;with&quot;         , WITH );</span>
+<span style="color:green;">   ( &quot;InjL&quot;         , INJL );</span>
+<span style="color:green;">   ( &quot;InjR&quot;         , INJR );</span>
+<span style="color:green;">]</span>
+
+<span style="color:green;">}</span>
+
+<span style="color:green;">(* rule for associating symbols to keywords/symbols in the program text *)</span>
+<span style="color:green;">rule token = parse</span>
+<span style="color:green;">    [ '\n' ] { incr_linenum lexbuf ; token lexbuf } </span>
+<span style="color:green;">     (* skip line breaks, but first increment line number *)</span>
+<span style="color:green;">  | &quot;(*&quot;            { comments 0 lexbuf }</span>
+<span style="color:green;">     (* implementing ocaml-style comments -- see comments rule below *)</span>
+<span style="color:green;">  | [' ' '\t' '\r' ]     { token lexbuf }     (* skip blanks *)</span>
+<span style="color:green;">  | ['-']?['0'-'9']+['.']['0'-'9']* as lxm { FLOAT(float_of_string lxm) }</span>
+<span style="color:green;">    (* regular expression for floating point numbers:</span>
+<span style="color:green;">         may start (or not - ?)  with minus  </span>
+<span style="color:green;">         followed by at least one (but maybe more - +) digits</span>
+<span style="color:green;">         followed by (exactly) one dot</span>
+<span style="color:green;">         followed by (0,1, or more - * ) digits for the fractional part *)</span>
+<span style="color:green;">  | ['-']?['0'-'9']+ as lxm { INT(int_of_string lxm) }</span>
+<span style="color:green;">    (* regular expression for integer numbers:</span>
+<span style="color:green;">         may start (or not - ?)  with minus  </span>
+<span style="color:green;">         followed by at least one (but maybe more - +) digits *)</span>
+<span style="color:green;">  | &quot;-&gt;&quot;           { ARROW } </span>
+<span style="color:green;">  | '+'            { PLUS }</span>
+<span style="color:green;">  | '-'            { MINUS }</span>
+<span style="color:green;">  | '*'            { MUL }</span>
+<span style="color:green;">  | '/'            { DIV }</span>
+<span style="color:green;">  | '&lt;'            { LT }</span>
+<span style="color:green;">  | &quot;&lt;=&quot;           { LTE }</span>
+<span style="color:green;">  | &quot;()&quot;           { SKIP }  (* empty stmt is defined by () to match ocaml *)</span>
+<span style="color:green;">  | '('            { LPAREN }</span>
+<span style="color:green;">  | ')'            { RPAREN }</span>
+<span style="color:green;">  | &quot;=&quot;            { EQ }</span>
+<span style="color:green;">  | &quot;:=&quot;           { ASGNOP }</span>
+<span style="color:green;">  | &quot;:&quot;            { COLON }</span>
+<span style="color:green;">  | ';'            { SEQ }</span>
+<span style="color:green;">  | '|'            { PIPE }</span>
+<span style="color:green;"> | '!'            { DEREF }</span>
+<span style="color:green;">  (*  next is a list of non-keyword symbols we want our language to have *)</span>
+<span style="color:green;">  | ['A'-'Z' 'a'-'z'] ['A'-'Z' 'a'-'z' '0'-'9' '_'] * as id</span>
+<span style="color:green;">                   { try Hashtbl.find keyword_table id </span>
+<span style="color:green;">                        (* if it's a keyword, use the symbol from the table *)</span>
+<span style="color:green;">                     with Not_found -&gt; VAR(id) </span>
+<span style="color:green;">                        (* if not, consider it a variable *)</span>
+<span style="color:green;">                   }</span>
+<span style="color:green;">  | eof            { EOF }</span>
+<span style="color:green;">  | _              { lex_error lexbuf }</span>
+<span style="color:green;">(* comments rule takes an additional integer argument level for the level of</span>
+<span style="color:green;">comment nesting to allow comments inside comments like this (* efhi *) *)</span>
+<span style="color:green;">and comments level = parse</span>
+<span style="color:green;">  | &quot;*)&quot;        { if level = 0 then token lexbuf</span>
+<span style="color:green;">                  else comments (level-1) lexbuf }</span>
+<span style="color:green;">     (* if level is 0, then we're closing the comment, else decrement level *)</span>
+<span style="color:green;">  | &quot;(*&quot;        { comments (level+1) lexbuf }</span>
+<span style="color:green;">     (* nested comment - increment comment level *)</span>
+<span style="color:green;">  | [ '\n' ]    { incr_linenum lexbuf ; comments level lexbuf }</span>
+<span style="color:green;">                (* skip line breaks, but still increment lines *)</span>
+<span style="color:green;">  | _           { comments level lexbuf }</span>
+<span style="color:green;">    (* skip everything else inside the comment *)</span>
+<span style="color:green;">  | eof         { raise End_of_file }</span>
+<span style="font-weight:bold;">diff --git a/mem.ml b/mem.ml</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..8cf25ac</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/mem.ml</span>
+<span style="color:teal;">@@ -0,0 +1,31 @@</span>
+<span style="color:green;">open ImpAST</span>
+
+<span style="color:green;">(** memory lookup is simply the [assoc] function defined in the List module *)</span>
+<span style="color:green;">let lookup = List.assoc</span>
+
+<span style="color:green;">(** Adds a new location containing value [n] to the given memory state and</span>
+<span style="color:green;">    returns a pair of the noew location and the memory state.</span>
+<span style="color:green;">    Assumes the first location in memory has the highest index </span>
+<span style="color:green;">    (was the last added). *)</span>
+<span style="color:green;">let mem_add (n : 't) : (int*'t) list -&gt; int * (int*'t) list = function</span>
+<span style="color:green;">  | [] -&gt; (0,[0,n])</span>
+<span style="color:green;">  | (x',n')::t -&gt; let x = x'+1 in (x,(x,n)::(x',n')::t)</span>
+
+<span style="color:green;">(** Updates te value of [x] to [n] in the given memory state.</span>
+<span style="color:green;">    @raise Not_found exception if [x] cannot be found. *)</span>
+<span style="color:green;">let rec update (x,n) = function</span>
+<span style="color:green;">  | [] -&gt; raise Not_found</span>
+<span style="color:green;">  | (y,v)::s  when x=y -&gt; ((x,n)::s)</span>
+<span style="color:green;">  | h::t -&gt; h::(update (x,n) t)</span>
+
+<span style="color:green;">(** Similar to the above, but instead of failing when [x] is not found, it</span>
+<span style="color:green;">    adds a new entry for [x] in the memory *)</span>
+<span style="color:green;">let update_or_add (x,v) m = (x,v)::List.remove_assoc x m</span>
+
+<span style="color:green;">(** Creates a string representation for the given memory state *)</span>
+<span style="color:green;">let string_of_mem : (int*expr) list -&gt; string = </span>
+<span style="color:green;">  let string_of_pair (x,v) = string_of_int x ^ &quot; |-&gt; &quot; ^ string_of_expr v in</span>
+<span style="color:green;">  let rec string_of_mem str = function</span>
+<span style="color:green;">  | [] -&gt; str</span>
+<span style="color:green;">  | p::t -&gt; string_of_mem (str ^ &quot;; &quot; ^ string_of_pair p) t</span>
+<span style="color:green;">  in function [] -&gt; &quot;&quot; | p::t -&gt; string_of_mem (string_of_pair p) t</span>
+<span style="font-weight:bold;">diff --git a/parser.mly b/parser.mly</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..0336801</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/parser.mly</span>
+<span style="color:teal;">@@ -0,0 +1,200 @@</span>
+<span style="color:green;">/* File parser.mly */</span>
+<span style="color:green;">%{</span>
+<span style="color:green;">(* Open is used for importing another module. </span>
+<span style="color:green;">   Each file is organized as a module with the module name being the</span>
+<span style="color:green;">   file name without extension where the first letter is capitalized</span>
+<span style="color:green;">*)</span>
+<span style="color:green;">open ImpAST  (* refer to definitions from ImpAST directly *)</span>
+<span style="color:green;">open Lexing  (* Lexing is a predefined library used for lexing *)</span>
+
+<span style="color:green;">(* Formats a string describing the location of the production being currently </span>
+<span style="color:green;">   parsed *)</span>
+<span style="color:green;">let location () =  let start_pos = Parsing.symbol_start_pos () in</span>
+<span style="color:green;">    let end_pos = Parsing.symbol_end_pos () in</span>
+<span style="color:green;">    (start_pos.pos_fname,start_pos.pos_lnum, start_pos.pos_cnum - start_pos.pos_bol, end_pos.pos_lnum, end_pos.pos_cnum - end_pos.pos_bol)</span>
+
+<span style="color:green;">(* Throws a ParseError with the specified location*)</span>
+<span style="color:green;">let parseError loc = raise (Lexer.ParseError loc)</span>
+
+<span style="color:green;">%}</span>
+<span style="color:green;">/* Token symbol declarations.  Tokens represent terminals/literals in the</span>
+<span style="color:green;">   grammar defined below. Each token must be declared here. */</span>
+<span style="color:green;">%token INT_CAST FLOAT_CAST  /* we can declare multiple tokens per line */</span>
+<span style="color:green;">/* tokens can be parameterized by types which will be their value */</span>
+<span style="color:green;">%token &lt;int&gt; INT</span>
+<span style="color:green;">%token &lt;float&gt; FLOAT</span>
+<span style="color:green;">%token &lt;string&gt; VAR</span>
+<span style="color:green;">%token TRUE FALSE</span>
+<span style="color:green;">%token SEQ SKIP</span>
+<span style="color:green;">%token IF THEN ELSE</span>
+<span style="color:green;">%token WHILE DO DONE</span>
+<span style="color:green;">%token FOR</span>
+<span style="color:green;">%token LT LTE EQ</span>
+<span style="color:green;">%token ASGNOP DEREF</span>
+<span style="color:green;">%token PLUS MINUS MUL DIV</span>
+<span style="color:green;">%token LPAREN RPAREN</span>
+<span style="color:green;">%token FUN COLON</span>
+<span style="color:green;">%token LET REC IN</span>
+<span style="color:green;">%token REF</span>
+<span style="color:green;">%token TINT TBOOL TUNIT TFLOAT</span>
+<span style="color:green;">%token ARROW</span>
+<span style="color:green;">%token MATCH WITH INJL INJR PIPE</span>
+<span style="color:green;">%token EOF</span>
+<span style="color:green;">/* Precedence list.  One can think of it like this:  </span>
+<span style="color:green;">   Reject a parse tree if two symbols in the list below occur one next to </span>
+<span style="color:green;">   the other in a parse tree but their order is reversed from the order below.</span>
+<span style="color:green;">   Example:  </span>
+<span style="color:green;">     3 + 5 * 7 can be parsed as either </span>
+<span style="color:green;">         +                     or                     *</span>
+<span style="color:green;">        / \                                          / \</span>
+<span style="color:green;">       3   *                                        +   7</span>
+<span style="color:green;">          / \                                      / \</span>
+<span style="color:green;">         5   7                                    3   5</span>
+<span style="color:green;">    However, the second tree does not respect the precedence, as</span>
+<span style="color:green;">    MUL is direcly above PLUS in the tree, while in the precedence list it is</span>
+<span style="color:green;">    below PLUS.</span>
+<span style="color:green;">*/</span>
+<span style="color:green;">%nonassoc FUNX /* lowest precedence */</span>
+<span style="color:green;">%right ARROW</span>
+<span style="color:green;">%right SEQ</span>
+<span style="color:green;">/* Grouping constraints: left/right/nonassoc say how multiple consecutive </span>
+<span style="color:green;">   occurrences of operators with the same precedence should be grouped.</span>
+<span style="color:green;">   %right:  reject a parse tree if two symbols in the list below occur one next </span>
+<span style="color:green;">   the other in a parse tree but the one below is not at the right </span>
+<span style="color:green;">   of the one on top.</span>
+<span style="color:green;">   Example:  </span>
+<span style="color:green;">     x := 3 ; () ; x := 7 can be parsed as either </span>
+<span style="color:green;">         ;                     or                     ;</span>
+<span style="color:green;">        / \                                          / \</span>
+<span style="color:green;">      x:=  ;                                        ;  x:=</span>
+<span style="color:green;">       |  / \                                      / \  |</span>
+<span style="color:green;">       3 () x:=                                  x:= () 7</span>
+<span style="color:green;">             |                                    |</span>
+<span style="color:green;">             7                                    3</span>
+<span style="color:green;">    However, the second tree does not respect the %right declaration for SEQ, as</span>
+<span style="color:green;">    SEQ is direcly below on the left side of  SEQ in the tree.</span>
+<span style="color:green;"> </span>
+<span style="color:green;">   Same holds true for multiple tokens at the same level. For example,</span>
+<span style="color:green;">     3 - 5 + 7 can be parsed as either </span>
+<span style="color:green;">         -                     or                     +</span>
+<span style="color:green;">        / \                                          / \</span>
+<span style="color:green;">       3   +                                        -   7</span>
+<span style="color:green;">          / \                                      / \</span>
+<span style="color:green;">         5   7                                    3   5</span>
+<span style="color:green;"> </span>
+<span style="color:green;">    However, the first tree does not respect the %left declaration </span>
+<span style="color:green;">    for PLUS and MINUS, as PLUS is direcly below on the right side of MINUS</span>
+<span style="color:green;">    in the tree.</span>
+<span style="color:green;">*/</span>
+<span style="color:green;">%nonassoc FORX  /* added to resolve precedence problems for for body */</span>
+<span style="color:green;">%nonassoc IFX /* added to resolve precedence problems for else branch */</span>
+<span style="color:green;">%nonassoc LT LTE EQ</span>
+<span style="color:green;">%right ASGNOP</span>
+<span style="color:green;">%left PLUS MINUS</span>
+<span style="color:green;">%left MUL DIV</span>
+<span style="color:green;">%nonassoc INT_CAST FLOAT_CAST</span>
+<span style="color:green;">%left APPX</span>
+<span style="color:green;">%nonassoc DEREF REF      /* highest precedence */</span>
+<span style="color:green;">%start main             /* the entry point/start symbol */</span>
+<span style="color:green;">%type &lt;ImpAST.expr&gt; main  /* the datatype associated to the start symbol */</span>
+<span style="color:green;">%%</span>
+
+<span style="color:green;">/* production for the start symbol.  we have one expression followed by EOF */</span>
+<span style="color:green;">main:</span>
+<span style="color:green;">    expr EOF                { $1 }</span>
+<span style="color:green;">/* for each case, the left side specifiess the grammar production, while the</span>
+<span style="color:green;">   right side (between curly brackets) specifies what how the </span>
+<span style="color:green;">   result associated to the production is formed.  for us it will be a value</span>
+<span style="color:green;">   of the expr type defined in impast.ml </span>
+<span style="color:green;">*/</span>
+<span style="color:green;">;</span>
+
+<span style="color:green;">/* grammar productions for expression types */</span>
+<span style="color:green;">tip:</span>
+<span style="color:green;">  | TINT                       {TInt}</span>
+<span style="color:green;">  | TBOOL                      {TBool}</span>
+<span style="color:green;">  | TUNIT                      {TUnit}</span>
+<span style="color:green;">  | TFLOAT                     {TFloat}</span>
+<span style="color:green;">  | tip ARROW tip              { TArrow ($1, $3) }</span>
+<span style="color:green;">  /* the TArrow type constructor is used to represent </span>
+<span style="color:green;">    functional types of the form a -&gt; b */</span>
+<span style="color:green;">  /* the $n variables are used to get the value corresponding to the nth</span>
+<span style="color:green;">     element of the production (counting from 1) */</span>
+<span style="color:green;">  | LPAREN tip RPAREN          { $2 }</span>
+<span style="color:green;">  | tip REF                    { TRef $1 }  /* reference type */</span>
+<span style="color:green;">  | tip PLUS tip              { TSum ($1, $3) }</span>
+
+<span style="color:green;">expr:</span>
+<span style="color:green;">  | expr PLUS expr             { Op ($1,Plus,$3, location()) }</span>
+<span style="color:green;">  /*  We add location information to all expression constructs to allow for</span>
+<span style="color:green;">      localized error messages */</span>
+<span style="color:green;">  | expr MINUS expr             { Op ($1,Minus,$3, location()) }</span>
+<span style="color:green;">  | expr MUL expr             { Op ($1,Mul,$3, location()) }</span>
+<span style="color:green;">  | expr DIV expr             { Op ($1,Div,$3, location()) }</span>
+<span style="color:green;">  | expr ASGNOP expr            { Atrib ($1,$3, location()) }</span>
+<span style="color:green;">  | expr LTE expr              { Op ($1, Mic, $3, location()) }</span>
+<span style="color:green;">  | expr LT expr              { Op ($1, MicS, $3, location()) }</span>
+<span style="color:green;">  | expr SEQ expr              { Secv ($1,$3, location()) }</span>
+<span style="color:green;">  | IF expr THEN expr ELSE expr %prec IFX</span>
+<span style="color:green;">                               { If ($2, $4, $6, location()) }</span>
+<span style="color:green;">  /* %prec IFX specifies that the expression on the IFX branch should have </span>
+<span style="color:green;">     precedence at least IFX.  It will reject therefore parse trees in which</span>
+<span style="color:green;">     the symbol at the top of the expression on the else branch is higher than</span>
+<span style="color:green;">     IFX in the precedence list.   Example:</span>
+<span style="color:green;">     if true then () else () ; x := 3  can be parsed as either </span>
+<span style="color:green;">          If                    or                      ;</span>
+<span style="color:green;">        / | \                                         /   \</span>
+<span style="color:green;">     true () ;                                       If   x:=</span>
+<span style="color:green;">            / \                                     / | \  | </span>
+<span style="color:green;">           () x:=                               true () () 3</span>
+<span style="color:green;">               |                                    </span>
+<span style="color:green;">               3                                   </span>
+<span style="color:green;">    However, the first tree does not respect the %prec IFX declaration for else</span>
+<span style="color:green;">    as SEQ is direcly below if on the else branch, while in the precedence list</span>
+<span style="color:green;">    SEQ is above IFX.</span>
+<span style="color:green;">  */</span>
+<span style="color:green;"> </span>
+<span style="color:green;">  | WHILE expr DO expr DONE    { While ($2, $4, location()) }</span>
+<span style="color:green;">  | FOR LPAREN expr SEQ expr SEQ expr RPAREN expr %prec FORX</span>
+<span style="color:green;">                               { For ($3, $5, $7, $9, location()) }</span>
+<span style="color:green;">  | FUN LPAREN VAR COLON tip RPAREN ARROW expr %prec FUNX</span>
+<span style="color:green;">                               { Fun ($3, $5, $8, location()) }</span>
+<span style="color:green;">  | LET REC VAR COLON tip EQ expr IN expr %prec FUNX</span>
+<span style="color:green;">                               { LetRec ($3, $5, $7, $9, location()) }</span>
+<span style="color:green;">  | LET VAR EQ expr IN expr %prec FUNX</span>
+<span style="color:green;">                               { Let ($2, $4, $6, location()) }</span>
+<span style="color:green;">  | expr funexpr               { App ($1, $2, location()) }</span>
+<span style="color:green;">  /* sometimes precedences are not enough so we must resort </span>
+<span style="color:green;">     to multiple non-terminals. Here we say that only certain expressions</span>
+<span style="color:green;">     defined by funexpr can be arguments to function application.   */</span>
+<span style="color:green;">  | funexpr                    { $1 }</span>
+<span style="color:green;">  /* here we say that those expressions defined by funexps </span>
+<span style="color:green;">     are themselves expr */</span>
+<span style="color:green;">  | INJL funexpr COLON tip     { InjL($2, $4, location()) }</span>
+<span style="color:green;">  | INJR funexpr COLON tip     { InjR($2, $4, location()) }</span>
+<span style="color:green;">  | MATCH expr WITH </span>
+<span style="color:green;">       INJL LPAREN VAR COLON tip RPAREN ARROW expr PIPE </span>
+<span style="color:green;">       INJR LPAREN VAR COLON tip RPAREN ARROW expr</span>
+<span style="color:green;">                               { Match($2, Fun($6, $8, $11, location()),</span>
+<span style="color:green;">                                           Fun($15, $17, $20, location()), </span>
+<span style="color:green;">                                           location()) }</span>
+<span style="color:green;">  /* For simplicity, the cases of match are encoded as function declarations */</span>
+<span style="color:green;">  | error                      { parseError (location ()) }</span>
+<span style="color:green;">;</span>
+
+<span style="color:green;">funexpr:</span>
+<span style="color:green;">  | INT                        { Int ($1,location()) }</span>
+<span style="color:green;">  | FLOAT                      { Float ($1,location()) }</span>
+<span style="color:green;">  | TRUE                       { Bool (true, location()) }</span>
+<span style="color:green;">  | FALSE                      { Bool (false, location()) }</span>
+<span style="color:green;">  | SKIP                       { Skip (location()) }</span>
+<span style="color:green;">  | VAR                        { Var ($1,location()) }</span>
+<span style="color:green;">  | INT_CAST                   { IntOfFloat (location()) }</span>
+<span style="color:green;">  | FLOAT_CAST                 { FloatOfInt (location()) }</span>
+<span style="color:green;">  | LPAREN expr RPAREN         { $2 }</span>
+<span style="color:green;">  /* having expression between parens here says that one can have any</span>
+<span style="color:green;">     expression as argument to a function application if the expression</span>
+<span style="color:green;">     is wrapped in parentheses */</span>
+<span style="color:green;">  | DEREF expr                 { Deref ($2, location()) }</span>
+<span style="color:green;">  | REF expr                   { Ref ($2, location()) }</span>
+<span style="color:green;">;</span>
+<span style="font-weight:bold;">diff --git a/programs/test1.imp b/programs/test1.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..6c8b0dd</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/test1.imp</span>
+<span style="color:teal;">@@ -0,0 +1 @@</span>
+<span style="color:green;">3 + 4</span>
+<span style="font-weight:bold;">diff --git a/programs/test2.imp b/programs/test2.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..cd763f3</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/test2.imp</span>
+<span style="color:teal;">@@ -0,0 +1,4 @@</span>
+<span style="color:green;">let x = 3 in</span>
+<span style="color:green;">let y = 7 in</span>
+<span style="color:green;">let z = (x + y)</span>
+<span style="color:green;">in z</span>
+<span style="font-weight:bold;">diff --git a/programs/test3.imp b/programs/test3.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..fc4969a</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/test3.imp</span>
+<span style="color:teal;">@@ -0,0 +1 @@</span>
+<span style="color:green;">3 + 4 * 5 - 6 / 2 / 4</span>
+<span style="font-weight:bold;">diff --git a/programs/test4.imp b/programs/test4.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..24c0f5b</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/test4.imp</span>
+<span style="color:teal;">@@ -0,0 +1,8 @@</span>
+<span style="color:green;">let n = ref 10 in</span>
+<span style="color:green;">let s = ref 0 in</span>
+<span style="color:green;">while 1 &lt;= !n do</span>
+<span style="color:green;">  s := !s + !n ;</span>
+<span style="color:green;">  n := !n - 1</span>
+<span style="color:green;">done ;</span>
+<span style="color:green;">! s</span>
+
+<span style="font-weight:bold;">diff --git a/programs/test5.imp b/programs/test5.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..61de1ae</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/test5.imp</span>
+<span style="color:teal;">@@ -0,0 +1,7 @@</span>
+<span style="color:green;">let x = 10 in</span>
+<span style="color:green;">let y = ref 20 in</span>
+<span style="color:green;">let n = ref 100 in</span>
+<span style="color:green;">if (!n &lt;= 100) then () else</span>
+<span style="color:green;">  y := !y + x ;</span>
+<span style="color:green;">n := !n + -1 ;</span>
+<span style="color:green;">!n</span>
+<span style="font-weight:bold;">diff --git a/programs/test6.imp b/programs/test6.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..d2565cb</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/test6.imp</span>
+<span style="color:teal;">@@ -0,0 +1,8 @@</span>
+<span style="color:green;">let n = ref 1000 in</span>
+<span style="color:green;">let x = ref 0 in</span>
+<span style="color:green;">let y = ref 0 in</span>
+<span style="color:green;">for (x := 1; !x &lt;= !n; x := !x + 1)</span>
+<span style="color:green;">  y := !y + !x ;</span>
+<span style="color:green;">n := !n - 1 ;</span>
+<span style="color:green;">!y</span>
+
+<span style="font-weight:bold;">diff --git a/programs/testApp1.imp b/programs/testApp1.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..cebea20</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testApp1.imp</span>
+<span style="color:teal;">@@ -0,0 +1 @@</span>
+<span style="color:green;">fun (a:int-&gt;int-&gt;(int-&gt;int)-&gt;(int-&gt;int)-&gt;int-&gt;int) -&gt; fun (b:int) -&gt; fun (c:int-&gt;int) -&gt; fun (d:int) -&gt; fun (e:int-&gt;int) -&gt; fun (f:int-&gt;int-&gt;int) -&gt; fun (g:int) -&gt; a b (c d) e (f g)</span>
+<span style="font-weight:bold;">diff --git a/programs/testCaptureLet.imp b/programs/testCaptureLet.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..9beb310</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testCaptureLet.imp</span>
+<span style="color:teal;">@@ -0,0 +1,4 @@</span>
+<span style="color:green;">let x = 10 in</span>
+<span style="color:green;">(let x = 11 in</span>
+<span style="color:green;">(let x = 12 in</span>
+<span style="color:green;">  x) + x) + x</span>
+<span style="font-weight:bold;">diff --git a/programs/testFloat1.imp b/programs/testFloat1.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..97d8f5e</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFloat1.imp</span>
+<span style="color:teal;">@@ -0,0 +1,2 @@</span>
+<span style="color:green;">3.5 + 6.5</span>
+
+<span style="font-weight:bold;">diff --git a/programs/testFloat2.imp b/programs/testFloat2.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..8bfc5fa</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFloat2.imp</span>
+<span style="color:teal;">@@ -0,0 +1,2 @@</span>
+<span style="color:green;">if 3.5 &lt;= 1.7 then 4.3 else 2.1</span>
+
+<span style="font-weight:bold;">diff --git a/programs/testFloat3.imp b/programs/testFloat3.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..71151b5</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFloat3.imp</span>
+<span style="color:teal;">@@ -0,0 +1,2 @@</span>
+<span style="color:green;">3 + int_of_float 2.5 &lt;= 7</span>
+
+<span style="font-weight:bold;">diff --git a/programs/testFloat4.imp b/programs/testFloat4.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..8e6f4e6</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFloat4.imp</span>
+<span style="color:teal;">@@ -0,0 +1,4 @@</span>
+<span style="color:green;">let x = ref 7 in</span>
+<span style="color:green;">let y = ref 4.5 in</span>
+<span style="color:green;">()</span>
+
+<span style="font-weight:bold;">diff --git a/programs/testFloat5.imp b/programs/testFloat5.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..7d01092</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFloat5.imp</span>
+<span style="color:teal;">@@ -0,0 +1,14 @@</span>
+<span style="color:green;">let e = 0.0001 in</span>
+<span style="color:green;">let cr = -3./4. in</span>
+<span style="color:green;">let ci = e in</span>
+<span style="color:green;">let zr = ref cr in</span>
+<span style="color:green;">let zi = ref ci in</span>
+<span style="color:green;">let n = ref 0 in</span>
+<span style="color:green;">while !zr*!zr - !zi*!zi &lt; 4. do</span>
+<span style="color:green;">  let zr_old = !zr in</span>
+<span style="color:green;">    zr := !zr*!zr - !zi*!zi + cr;</span>
+<span style="color:green;">    zi := 2.*zr_old*!zi + ci;</span>
+<span style="color:green;">    n := !n + 1</span>
+<span style="color:green;">done ;</span>
+<span style="color:green;">float_of_int !n * e</span>
+
+<span style="font-weight:bold;">diff --git a/programs/testFun1.imp b/programs/testFun1.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..fddd245</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFun1.imp</span>
+<span style="color:teal;">@@ -0,0 +1,2 @@</span>
+<span style="color:green;">(fun (f : int -&gt; int) -&gt; fun (x : int) -&gt; f x) (fun (x : int) -&gt; x + 1) 3</span>
+<span style="color:green;">(* 4 *)</span>
+<span style="font-weight:bold;">diff --git a/programs/testFun2.imp b/programs/testFun2.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..524a8ca</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFun2.imp</span>
+<span style="color:teal;">@@ -0,0 +1,5 @@</span>
+<span style="color:green;">let l1 = ref 0 in</span>
+<span style="color:green;">(fun (x : unit) -&gt; l1 := 5 ; x ; x) (l1 := !l1 + 1) ;</span>
+<span style="color:green;">!l1</span>
+
+<span style="color:green;">(* 5 for strict evaluation *)</span>
+<span style="font-weight:bold;">diff --git a/programs/testFun3.imp b/programs/testFun3.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..642a380</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFun3.imp</span>
+<span style="color:teal;">@@ -0,0 +1,6 @@</span>
+<span style="color:green;">(fun (m : (int-&gt;int)-&gt;int-&gt;int) -&gt; fun (n:(int-&gt;int)-&gt;int-&gt;int) -&gt; fun (f:int-&gt;int) -&gt; fun (x:int) -&gt; m f (n f x)) (* plus *)</span>
+<span style="color:green;">(fun (f:int-&gt;int) -&gt; fun (x:int) -&gt; f ( f ( f (f x)))) (* 4 *)</span>
+<span style="color:green;">(fun (f:int-&gt;int) -&gt; fun (x:int) -&gt; f ( f ( f x))) (* 3 *)</span>
+<span style="color:green;">(fun (x:int) -&gt; x + 1)  </span>
+<span style="color:green;"> 0</span>
+<span style="color:green;">(* 7 *)</span>
+<span style="font-weight:bold;">diff --git a/programs/testFun4.imp b/programs/testFun4.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..57654c1</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testFun4.imp</span>
+<span style="color:teal;">@@ -0,0 +1,5 @@</span>
+<span style="color:green;">let l1 = ref 0 in</span>
+<span style="color:green;">(fun (x : unit -&gt; unit) -&gt; l1 := 5 ; x() ; x()) (fun (x:unit) -&gt; l1 := !l1 + 1) ;</span>
+<span style="color:green;">!l1</span>
+
+<span style="color:green;">(* 7 *)</span>
+<span style="font-weight:bold;">diff --git a/programs/testLetRec.imp b/programs/testLetRec.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..0e2fb94</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/testLetRec.imp</span>
+<span style="color:teal;">@@ -0,0 +1,2 @@</span>
+<span style="color:green;">let rec fib : int -&gt; int = fun (x : int) -&gt; if x &lt;= 1 then x else fib (x - 1) + fib (x - 2)</span>
+<span style="color:green;">in fib 10</span>
+<span style="font-weight:bold;">diff --git a/programs/todoMatch.imp b/programs/todoMatch.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..4a82d7e</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/todoMatch.imp</span>
+<span style="color:teal;">@@ -0,0 +1,5 @@</span>
+<span style="color:green;">let truth = fun (x : int + bool) -&gt;</span>
+<span style="color:green;">    match x with</span>
+<span style="color:green;">       InjL (x:int) -&gt; if x &lt; 0 then true else if 0 &lt; x then true else false</span>
+<span style="color:green;">     | InjR (b:bool) -&gt; b</span>
+<span style="color:green;">in truth (InjL 3 : int + bool)</span>
+<span style="font-weight:bold;">diff --git a/programs/todoProdus.imp b/programs/todoProdus.imp</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..f377f1b</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/programs/todoProdus.imp</span>
+<span style="color:teal;">@@ -0,0 +1,2 @@</span>
+<span style="color:green;">let max = fun (p : int * int) -&gt; if fst p &lt; snd p then snd p else fst p</span>
+<span style="color:green;">in max (5,4)</span>
+<span style="font-weight:bold;">diff --git a/semantics.ml b/semantics.ml</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..2928226</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/semantics.ml</span>
+<span style="color:teal;">@@ -0,0 +1,116 @@</span>
+<span style="color:green;">open Mem</span>
+<span style="color:green;">open ImpAST</span>
+
+<span style="color:green;">(** Returns true when the expression is a function value *)</span>
+<span style="color:green;">let is_fun : expr -&gt; bool = function</span>
+<span style="color:green;">  | Fun _ | IntOfFloat _ | FloatOfInt _ -&gt; true</span>
+<span style="color:green;">  | _ -&gt; false</span>
+
+<span style="color:green;">(** Returns true when the expression is a value *)</span>
+<span style="color:green;">let is_val : expr -&gt; bool = function</span>
+<span style="color:green;">  | Bool _ | Int _ | Float _ | Loc _ | Skip _ -&gt; true</span>
+<span style="color:green;">  | e -&gt; is_fun e</span>
+
+
+<span style="color:green;">(** Implements the reduction rules specifying the operational semantics. *)</span>
+<span style="color:green;">let rec reduce = function</span>
+<span style="color:green;">  | (Op(Int (n1,_),Plus,Int (n2,_),loc),s) -&gt; Some (Int (n1+n2,loc),s)</span>
+<span style="color:green;">  | (Op(Float (f1,_),Plus,Float (f2,_),loc),s) -&gt; Some (Float (f1+.f2,loc),s)</span>
+
+<span style="color:green;">  | (Op(Int (n1,_),Minus,Int (n2,_),loc),s) -&gt; Some (Int (n1-n2,loc),s)</span>
+<span style="color:green;">  | (Op(Float (f1,_),Minus,Float (f2,_),loc),s) -&gt; Some (Float (f1-.f2,loc),s)</span>
+
+<span style="color:green;">  | (Op(Int (n1,_),Mul,Int (n2,_),loc),s) -&gt; Some (Int (n1*n2,loc),s)</span>
+<span style="color:green;">  | (Op(Float (f1,_),Mul,Float (f2,_),loc),s) -&gt; Some (Float (f1*.f2,loc),s)</span>
+
+<span style="color:green;">  | (Op(Int (n1,_),Div,Int (n2,_),loc),s) when n2 &lt;&gt; 0 -&gt; Some (Int (n1/n2,loc),s)</span>
+<span style="color:green;">  | (Op(Float (f1,_),Div,Float (f2,_),loc),s) -&gt; Some (Float (f1/.f2,loc),s)</span>
+
+<span style="color:green;">  | (Op(Int (n1,_),Mic,Int (n2,_),loc),s) -&gt; Some (Bool (n1&lt;=n2,loc),s)</span>
+<span style="color:green;">  | (Op(Float (f1,_),Mic,Float (f2,_),loc),s) -&gt; Some (Bool (f1&lt;=f2,loc),s)</span>
+
+<span style="color:green;">  | (Op(Int (n1,_),MicS,Int (n2,_),loc),s) -&gt; Some (Bool (n1&lt;n2,loc),s)</span>
+<span style="color:green;">  | (Op(Float (f1,_),MicS,Float (f2,_),loc),s) -&gt; Some (Bool (f1&lt;f2,loc),s)</span>
+
+<span style="color:green;">  | (Op(Int (n1,loc1),op,e2,loc),s) -&gt;                           (*OpDInt*)</span>
+<span style="color:green;">    (match reduce (e2,s) with </span>
+<span style="color:green;">      | Some (e2',s') -&gt; Some (Op(Int (n1,loc1),op,e2',loc),s')</span>
+<span style="color:green;">      | None -&gt; None</span>
+<span style="color:green;">    )</span>
+<span style="color:green;">  | (Op(Float (f1,loc1),op,e2,loc),s) -&gt;                        (*OpDFloat*)</span>
+<span style="color:green;">    (match reduce (e2,s) with </span>
+<span style="color:green;">      | Some (e2',s') -&gt; Some (Op(Float (f1,loc1),op,e2',loc),s')</span>
+<span style="color:green;">      | None -&gt; None</span>
+<span style="color:green;">    )</span>
+<span style="color:green;">  | (Op(e1,op,e2,loc),s) -&gt;                                     (*OpS*)</span>
+<span style="color:green;">    (match reduce (e1,s) with Some (e1',s') -&gt; Some (Op(e1',op,e2,loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (Deref (Loc (l,_), loc), s) -&gt; Some (lookup l s, s)         (*Deref*)</span>
+<span style="color:green;">  | (Deref (e, loc), s) -&gt;                                      (*DerefS*)</span>
+<span style="color:green;">    (match reduce (e,s) with Some (e',s') -&gt; Some (Deref(e',loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+
+<span style="color:green;">  | (Ref (v,loc), s) when is_val v -&gt;                           (*Ref*)</span>
+<span style="color:green;">    let (l,s') = mem_add v s </span>
+<span style="color:green;">    in Some (Loc (l,loc), s')                    </span>
+<span style="color:green;">  | (Ref (e, loc), s) -&gt;                                        (*RefS*)</span>
+<span style="color:green;">    (match reduce (e,s) with Some (e',s') -&gt; Some (Ref(e',loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (Atrib(Loc(l,_), v,loc),s) when is_val v -&gt;                 (*Atrib*)</span>
+<span style="color:green;">      Some (Skip loc, update (l, v) s)</span>
+<span style="color:green;">  | (Atrib(Loc(l,loc'),e,loc),s) -&gt;                             (*AtribD*)</span>
+<span style="color:green;">    (match reduce (e,s) with </span>
+<span style="color:green;">      | Some (e',s') -&gt; Some (Atrib(Loc(l,loc'),e',loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (Atrib(e1,e2,loc),s) -&gt;                                     (*AtribS*)</span>
+<span style="color:green;">    (match reduce (e1,s) with </span>
+<span style="color:green;">      | Some (e1',s') -&gt; Some (Atrib(e1',e2,loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (Secv(Skip _,e,_),s) -&gt; Some (e,s)                          (*Secv*)</span>
+<span style="color:green;">  | (Secv(e1,e2,loc),s) -&gt;                                      (*SecvS*)</span>
+<span style="color:green;">    (match reduce (e1,s) with Some (e1',s') -&gt; Some (Secv(e1',e2,loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (If(Bool (true,_),e1,e2,_),s) -&gt; Some (e1,s)                (*IfTrue*)</span>
+<span style="color:green;">  | (If(Bool (false,_),e1,e2,_),s) -&gt; Some (e2,s)               (*IfFalse*)</span>
+<span style="color:green;">  | (If(e,e1,e2,loc),s) -&gt;                                      (*IfS*)</span>
+<span style="color:green;">    (match reduce (e,s) with Some (e',s') -&gt; Some (If(e',e1,e2,loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (While(e1,e2,loc),s) -&gt; </span>
+<span style="color:green;">     Some (If(e1,Secv(e2,While(e1,e2,loc),loc),Skip loc,loc),s) (*While*)</span>
+<span style="color:green;">  | (For(init,cond,incr,body,l), s) </span>
+<span style="color:green;">    -&gt; Some (Secv(init,While(cond,Secv(body,incr,l),l),l), s)   (*For*)</span>
+<span style="color:green;">  | (App (IntOfFloat _, Float (f,_), loc), s)                   (*IntOfFloat*)</span>
+<span style="color:green;">    -&gt; Some (Int (int_of_float f, loc), s)</span>
+<span style="color:green;">  | (App (FloatOfInt _, Int (n,_), loc), s)                     (*FloatOfInt*)</span>
+<span style="color:green;">    -&gt; Some (Float (float_of_int n, loc), s)</span>
+<span style="color:green;">  | ((App (Fun(x,_,e1,_),e2,_) | Let (x,e2,e1,_)),s) when is_val e2 </span>
+<span style="color:green;">    -&gt; Some (subst x e2 e1, s)                                  (*App&amp;Let *)</span>
+<span style="color:green;">  | (App (e1, e2, loc), s) when is_fun e1                       (*AppR*)</span>
+<span style="color:green;">     -&gt; (match reduce (e2,s) with Some (e2',s') -&gt; Some (App(e1,e2',loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (App (e1, e2, loc), s)                                      (*AppS*)</span>
+<span style="color:green;">     -&gt; (match reduce (e1,s) with Some (e1',s') -&gt; Some (App(e1',e2,loc),s')</span>
+<span style="color:green;">      | None -&gt; None)</span>
+<span style="color:green;">  | (Let (x, e2, e1, loc), s)                                   (*LetS*)</span>
+<span style="color:green;">     -&gt; (match reduce (e2,s) with </span>
+<span style="color:green;">           |Some (e2',s') -&gt; Some (Let (x,e2',e1,loc),s')</span>
+<span style="color:green;">           | None -&gt; None)</span>
+<span style="color:green;">  | (LetRec (x, t, e2, e1, loc), s)                             (*LetRec*)</span>
+<span style="color:green;">     -&gt; Some (subst x (LetRec (x, t, e2, e2, loc)) e1, s)</span>
+<span style="color:green;">  | _ -&gt; None                                                    (*default*)</span>
+
+
+<span style="color:green;">(** Computes the string representation of a configuration *)</span>
+<span style="color:green;">let string_of_config (p,m) = &quot;&lt;&quot; ^ string_of_expr p ^ &quot;, {&quot; ^ string_of_mem m ^ &quot;} &gt;&quot;</span>
+
+<span style="color:green;">(** Computes the transitive closure -&gt;* of the one step reduction relation. </span>
+<span style="color:green;">    Returns the final state reachable from the given (initial) configuration.</span>
+<span style="color:green;">    @param debug Specifies whether each transition step should be printed</span>
+<span style="color:green;">    @param c the configuration to be executed  *)</span>
+<span style="color:green;">let rec evaluate debug c = match (reduce c) with</span>
+<span style="color:green;">  | Some c' -&gt; if debug </span>
+<span style="color:green;">               then Printf.printf &quot;%s\n&quot; (string_of_config c) </span>
+<span style="color:green;">               else () ; </span>
+<span style="color:green;">               evaluate debug c'</span>
+<span style="color:green;">  | None -&gt; c</span>
+
+<span style="font-weight:bold;">diff --git a/types.ml b/types.ml</span>
+<span style="font-weight:bold;">new file mode 100644</span>
+<span style="font-weight:bold;">index 0000000..d885d97</span>
+<span style="font-weight:bold;">--- /dev/null</span>
+<span style="font-weight:bold;">+++ b/types.ml</span>
+<span style="color:teal;">@@ -0,0 +1,92 @@</span>
+<span style="color:green;">open Mem</span>
+<span style="color:green;">open ImpAST</span>
+
+<span style="color:green;">(** Type exception. [TypeError(e,t1,t2)] says that the expected type for</span>
+<span style="color:green;">    [e] was [t1], but the computed type is [t2]. *)</span>
+<span style="color:green;">exception TypeError of expr*tip*tip</span>
+<span style="color:green;">(** Should take as argument a variable and says that that variable is unbound *)</span>
+<span style="color:green;">exception VarNotFound of expr</span>
+
+<span style="color:green;">(** Type inference function. Implements the typing rules, but also adds cases</span>
+<span style="color:green;">    for failures to better localize the error. </span>
+<span style="color:green;">    @param m the typing environment, mapping variables to types. *)</span>
+<span style="color:green;">let rec infertype (m:(string*tip) list) : expr -&gt; tip = function</span>
+<span style="color:green;">  | Int (n,_) -&gt; TInt</span>
+<span style="color:green;">  | Bool (b,_) -&gt; TBool</span>
+<span style="color:green;">  | Float (f,_) -&gt; TFloat</span>
+<span style="color:green;">  | Op(e1,Plus,e2,_) </span>
+<span style="color:green;">  | Op(e1,Minus,e2,_) </span>
+<span style="color:green;">  | Op(e1,Mul,e2,_) </span>
+<span style="color:green;">  | Op(e1,Div,e2,_) </span>
+<span style="color:green;">    -&gt; (match (infertype m e1, infertype m e2) with</span>
+<span style="color:green;">     | (TInt, TInt) -&gt; TInt</span>
+<span style="color:green;">     | (TFloat, TFloat) -&gt; TFloat</span>
+<span style="color:green;">     | (TInt, t) -&gt; raise (TypeError (e2, TInt, t))</span>
+<span style="color:green;">     | (TFloat, t) -&gt; raise (TypeError (e2, TFloat, t))</span>
+<span style="color:green;">     | (t,_) -&gt; raise (TypeError (e1, TInt, t)))</span>
+<span style="color:green;">  | Op(e1,Mic,e2,_) </span>
+<span style="color:green;">  | Op(e1,MicS,e2,_) </span>
+<span style="color:green;">    -&gt; (match (infertype m e1, infertype m e2) with</span>
+<span style="color:green;">     | (TInt, TInt) | (TFloat, TFloat)  -&gt; TBool</span>
+<span style="color:green;">     | (TInt, t)  -&gt; raise (TypeError (e2, TInt, t))</span>
+<span style="color:green;">     | (TFloat, t) -&gt; raise (TypeError (e2, TFloat, t))</span>
+<span style="color:green;">     | (t,_) -&gt; raise (TypeError (e1, TInt, t)))</span>
+<span style="color:green;">  | If(e1,e2,e3,_) -&gt; (match (infertype m e1, infertype m e2, infertype m e3) with</span>
+<span style="color:green;">     | (TBool, t, t') when t=t' -&gt; t</span>
+<span style="color:green;">     | (TBool, t, t') -&gt; raise (TypeError (e3, t, t'))</span>
+<span style="color:green;">     | (t,_,_) -&gt; raise (TypeError (e1, TBool, t)))</span>
+<span style="color:green;">  | Deref (e,_)</span>
+<span style="color:green;">    -&gt; (match (infertype m e) with</span>
+<span style="color:green;">          | TRef t -&gt; t</span>
+<span style="color:green;">          | t -&gt; raise (TypeError (e, TRef t, t)))</span>
+<span style="color:green;">  | Ref (e,_) -&gt; TRef (infertype m e) </span>
+
+<span style="color:green;">  | Var (v,loc) -&gt; (try </span>
+<span style="color:green;">           lookup v m </span>
+<span style="color:green;">     with Not_found -&gt; raise (VarNotFound (Var(v, loc))))</span>
+<span style="color:green;">  | Atrib(e1,e2,loc) -&gt; (match (infertype m e1, infertype m e2) with</span>
+<span style="color:green;">       | (TRef t1, t2) when t1 = t2 -&gt; TUnit</span>
+<span style="color:green;">       | (TRef t, t') -&gt; raise (TypeError (e2, t, t'))</span>
+<span style="color:green;">       | (t, t') -&gt; raise (TypeError (e1, TRef t', t)))</span>
+<span style="color:green;">  | Skip _ -&gt; TUnit</span>
+<span style="color:green;">  | Secv (e1,e2,_) -&gt; (match (infertype m e1, infertype m e2) with</span>
+<span style="color:green;">     | (TUnit,t) -&gt; t</span>
+<span style="color:green;">     | (t1,_) -&gt; raise (TypeError (e1, TUnit, t1)))</span>
+<span style="color:green;">  | While (cond,body,_) -&gt; (match (infertype m cond, infertype m body) with</span>
+<span style="color:green;">     | (TBool, TUnit) -&gt; TUnit</span>
+<span style="color:green;">     | (TBool, t) -&gt; raise (TypeError (body, TUnit, t))</span>
+<span style="color:green;">     | (t,_) -&gt; raise (TypeError (cond, TBool, t)))</span>
+<span style="color:green;">  | For (init,cond,incr,body,_) </span>
+<span style="color:green;">    -&gt; (match (infertype m init, infertype m cond, infertype m incr, infertype m body) with</span>
+<span style="color:green;">     | (TUnit, TBool, TUnit, TUnit) -&gt; TUnit</span>
+<span style="color:green;">     | (TUnit, TBool, TUnit, t) -&gt; raise (TypeError (body, TUnit, t))</span>
+<span style="color:green;">     | (TUnit, TBool, t, _) -&gt; raise (TypeError (incr, TUnit, t))</span>
+<span style="color:green;">     | (TUnit, t, _, _) -&gt; raise (TypeError (cond, TBool, t))</span>
+<span style="color:green;">     | (t, _, _, _) -&gt; raise (TypeError (init, TUnit, t)))</span>
+<span style="color:green;">  | App (e1, e2, _) -&gt; (match (infertype m e1, infertype m e2) with</span>
+<span style="color:green;">     | (TArrow(t1, t1'), t2) when t1 = t2 -&gt; t1'</span>
+<span style="color:green;">     | (TArrow(t1, t1'), t2) -&gt; raise (TypeError (e2,t1,t2))</span>
+<span style="color:green;">     | (t1,t2) -&gt; raise (TypeError (e1,TArrow(t2,t2),t1)))</span>
+<span style="color:green;">  | IntOfFloat _ -&gt; TArrow(TFloat, TInt)</span>
+<span style="color:green;">  | FloatOfInt _ -&gt; TArrow(TInt, TFloat)</span>
+<span style="color:green;">  | Fun (x,t,e,_) -&gt; TArrow(t, infertype (update_or_add (x,t) m) e)</span>
+<span style="color:green;">  | Let (x,e1,e2,_) </span>
+<span style="color:green;">    -&gt; let t = infertype m e1 in infertype (update_or_add (x,t) m) e2</span>
+<span style="color:green;">  | LetRec (x,t,e1,e2,_) </span>
+<span style="color:green;">    -&gt; let infertype' = infertype (update_or_add (x,t) m)</span>
+<span style="color:green;">       in (match (infertype' e1, infertype' e2) with</span>
+<span style="color:green;">             | (t1,t2) when t1 = t -&gt; t2</span>
+<span style="color:green;">             | (t1,_) -&gt; raise (TypeError (e1,t,t1)))</span>
+<span style="color:green;">  | e -&gt; failwith (&quot;infertype: Don't know how to type the following expression:\n&quot; ^ string_of_expr e)</span>
+
+
+<span style="color:green;">(** Type checks a program using the [infertype] function in the empty type </span>
+<span style="color:green;">    environment.  If the program typechecks, returns true.  If not, prints</span>
+<span style="color:green;">    and adequate message and returns false. *)</span>
+<span style="color:green;">let type_check e = try</span>
+<span style="color:green;">     let _ = infertype [] e in true</span>
+<span style="color:green;">  with </span>
+<span style="color:green;">    | TypeError (e,t1,t2) -&gt; Printf.eprintf &quot;%s\nError: This expression has type %s but an expression was expected of type %s\n&quot;  (string_of_locatie (location e)) (string_of_tip t2) (string_of_tip t1) ; false</span>
+<span style="color:green;">    | VarNotFound e -&gt; Printf.eprintf &quot;%s\nError: Variable %s unbound.\n&quot;  (string_of_locatie (location e)) (string_of_expr e) ; false</span>
+
+
+</pre>
+</body>
+</html>
